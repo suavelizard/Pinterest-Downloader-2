@@ -4,7 +4,7 @@ package nl.juraji.pinterestdownloader.util;
  * Created by Juraji on 1-5-2018.
  * pinterestdownloader
  */
-public class FileUtils {
+public final class FileUtils {
 
     public static String bytesInHumanReadable(float bytes) {
         final String[] dictionary = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};

@@ -1,7 +1,7 @@
 package nl.juraji.pinterestdownloader;
 
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.MainWindowForm;
+import nl.juraji.pinterestdownloader.ui.MainWindowFrame;
 import org.jboss.weld.environment.se.Weld;
 
 import javax.enterprise.inject.spi.CDI;
@@ -21,18 +21,22 @@ public final class Container {
     private Container(String[] args) throws Exception {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-        debugMode = Arrays.stream(args).anyMatch(s -> s.equals("--debug"));
+        this.debugMode = Arrays.stream(args).anyMatch(s -> s.equals("--debug"));
 
         // Initialize Weld
-        weld = new Weld(I18n.get("ui.applicationName"));
-        weld.initialize();
+        this.weld = new Weld(I18n.get("ui.applicationName"));
+        this.weld.initialize();
 
         // Bootstrap Main class
-        CDI.current().select(MainWindowForm.class).get();
+        CDI.current().select(MainWindowFrame.class).get();
     }
 
     public static void main(String[] args) throws Exception {
         CONTAINER.set(new Container(args));
+    }
+
+    public static Weld getWeld() {
+        return CONTAINER.get().weld;
     }
 
     @SuppressWarnings("unused")

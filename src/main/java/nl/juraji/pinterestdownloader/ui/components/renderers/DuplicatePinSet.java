@@ -17,7 +17,7 @@ public class DuplicatePinSet {
     public DuplicatePinSet(Pin parentPin, List<Pin> duplicates) {
         this.parentPin = parentPin;
         this.duplicates = duplicates;
-        this.displayName = I18n.get("ui.duplicateScanDialog.duplicatePinSet.displayName",
+        this.displayName = I18n.get("ui.duplicateScanner.duplicatePinSet.displayName",
                 parentPin.getPinId(),
                 duplicates.size());
     }

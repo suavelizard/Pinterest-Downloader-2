@@ -1,6 +1,5 @@
-package nl.juraji.pinterestdownloader.ui.dialogs;
+package nl.juraji.pinterestdownloader.ui.panels;
 
-import nl.juraji.pinterestdownloader.cdi.annotations.Indicator;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
@@ -8,19 +7,19 @@ import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.BoardsCheckboxList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItem;
+import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.FormUtils;
-import nl.juraji.pinterestdownloader.util.workers.*;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.SwingWorkerDoneListener;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.Worker;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.WrappingWorker;
+import nl.juraji.pinterestdownloader.util.workers.SwingWorkerDoneListener;
+import nl.juraji.pinterestdownloader.util.workers.Worker;
+import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
+import nl.juraji.pinterestdownloader.workers.*;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -31,8 +30,8 @@ import java.util.logging.Logger;
  * Created by Juraji on 25-4-2018.
  * Pinterest Downloader
  */
-@SuppressWarnings("CdiManagedBeanInconsistencyInspection")
-public class BackupPinsDialog extends JDialog {
+@Default
+public class RunBackupsPanel implements WindowPane {
 
     private JPanel contentPane;
     private BoardsCheckboxList boardsList;
@@ -44,7 +43,7 @@ public class BackupPinsDialog extends JDialog {
     private JButton selectNewBoardsButton;
     private JButton deleteBoardsButton;
     private JButton selectIncompleteBoardsButton;
-    private JCheckBox fullScanCheckBox;
+    private JCheckBox incrementalBackupCheckBox;
 
     @Inject
     private Logger logger;
@@ -56,42 +55,32 @@ public class BackupPinsDialog extends JDialog {
     private BoardDao boardDao;
 
     @Inject
-    @Indicator
     private Instance<ProgressIndicator> indicatorInst;
-
-    public BackupPinsDialog(Frame owner) {
-        super(owner, I18n.get("ui.backupPinsDialog.dialogTitle"), true);
-
-        pack();
-        setContentPane(contentPane);
-    }
 
     @PostConstruct
     private void init() {
         boardsList.updateBoards(boardDao.get());
-        boardCountLabel.setText(I18n.get("ui.backupPinsDialog.boardCount", boardsList.getModel().getSize()));
+        boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
         boardsList.setOnBoardUpdate(boardDao::save);
 
         setupFetchBoardsButton();
         setupBackupBoardsButton();
         setupDeleteBoardsButton();
         setupSelectionButtons();
-        setupDestroyPinterestWebWorker();
     }
 
-    private void setupDestroyPinterestWebWorker() {
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                // Destroy the scraper, since we don't need it anymore
-                PinterestScraperWorker.destroyDriver();
-            }
-        });
+    @PreDestroy
+    private void preDestroy() {
+        PinterestScraperWorker.destroyDriver();
+    }
+
+    public JPanel getContentPane() {
+        return contentPane;
     }
 
     private void setupFetchBoardsButton() {
         fetchBoardsButton.addActionListener(evt -> {
-            FormUtils.FormLock formLock = FormUtils.lockForm(this, false);
+            FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
             FetchBoardsWorker scanner = new FetchBoardsWorker(indicatorInst.get(), settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(),
                     boardDao.get());
@@ -103,7 +92,7 @@ public class BackupPinsDialog extends JDialog {
                         List<Board> boards = scanner.get();
                         boardDao.save(boards);
                         boardsList.updateBoards(boards, true);
-                        boardCountLabel.setText(I18n.get("ui.backupPinsDialog.boardCount", boardsList.getModel().getSize()));
+                        boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
                     } catch (InterruptedException | ExecutionException e) {
                         logger.log(Level.WARNING, "Error fetching boards", e);
                     } finally {
@@ -118,13 +107,13 @@ public class BackupPinsDialog extends JDialog {
         backupBoardsButton.addActionListener(evt -> {
             List<BoardCheckboxListItem> selectedItems = boardsList.getSelectedItems();
 
-            int choice = JOptionPane.showConfirmDialog(this,
-                    I18n.get("ui.backupPinsDialog.backupBoards.alert"),
-                    I18n.get("ui.backupPinsDialog.backupBoards.alert.title", selectedItems.size()),
+            int choice = JOptionPane.showConfirmDialog(contentPane,
+                    I18n.get("ui.runBackups.backupBoards.alert"),
+                    I18n.get("ui.runBackups.backupBoards.alert.title", selectedItems.size()),
                     JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 if (selectedItems.size() > 0) {
-                    FormUtils.FormLock formLock = FormUtils.lockForm(this, false);
+                    FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
                     WrappingWorker worker = new WrappingWorker() {
                         @Override
@@ -132,13 +121,13 @@ public class BackupPinsDialog extends JDialog {
                             String username = settingsDao.getPinterestUsername();
                             String password = settingsDao.getPinterestPassword();
                             File imageStore = settingsDao.getImageStore();
-                            boolean isFullScan = fullScanCheckBox.isSelected();
+                            boolean isIncrementalBackup = incrementalBackupCheckBox.isSelected();
 
                             for (BoardCheckboxListItem item : selectedItems) {
                                 Board board = item.getBoard();
 
                                 try {
-                                    FetchPinsWorker scanner = new FetchPinsWorker(indicatorInst.get(), username, password, board, isFullScan);
+                                    FetchPinsWorker scanner = new FetchPinsWorker(indicatorInst.get(), username, password, board, isIncrementalBackup);
 
                                     scanner.execute();
                                     List<Pin> pins = scanner.get();
@@ -193,14 +182,14 @@ public class BackupPinsDialog extends JDialog {
         deleteBoardsButton.addActionListener(evt -> {
             List<BoardCheckboxListItem> selectedItems = boardsList.getSelectedItems();
 
-            int choice = JOptionPane.showConfirmDialog(this,
-                    I18n.get("ui.backupPinsDialog.deleteBoards.alert"),
-                    I18n.get("ui.backupPinsDialog.deleteBoards.alert.title", selectedItems.size()),
+            int choice = JOptionPane.showConfirmDialog(contentPane,
+                    I18n.get("ui.runBackups.deleteBoards.alert"),
+                    I18n.get("ui.runBackups.deleteBoards.alert.title", selectedItems.size()),
                     JOptionPane.YES_NO_OPTION);
 
             if (choice == JOptionPane.YES_OPTION) {
                 if (selectedItems.size() > 0) {
-                    FormUtils.FormLock formLock = FormUtils.lockForm(this, false);
+                    FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
                     Worker<Void> worker = new DeleteBoardsWorker(indicatorInst.get(), selectedItems);
                     worker.addPropertyChangeListener(new SwingWorkerDoneListener() {
                         @Override

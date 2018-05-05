@@ -31,21 +31,16 @@ public final class FormUtils {
         );
     }
 
-    public static FormLock lockForm(Container form, boolean self) {
-        return new FormLock(form, self);
+    public static FormLock lockForm(Container form) {
+        return new FormLock(form);
     }
 
     public static final class FormLock {
         private final Container form;
 
-        private FormLock(Container form, boolean self) {
+        private FormLock(Container form) {
             this.form = form;
             this.setEnabled(this.form, false);
-
-            if (!self) {
-                // If self is false re-enable the main form
-                this.form.setEnabled(true);
-            }
         }
 
         public void unlock() {

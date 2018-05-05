@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.workers;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>> {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final Board board;
-    private final boolean isFullScan;
+    private final boolean isIncrementalBackup;
 
-    public FetchPinsWorker(ProgressIndicator indicator, String username, String password, Board board, boolean isFullScan) {
+    public FetchPinsWorker(ProgressIndicator indicator, String username, String password, Board board, boolean isIncrementalBackup) {
         super(indicator, username, password);
         this.board = board;
-        this.isFullScan = isFullScan;
+        this.isIncrementalBackup = isIncrementalBackup;
     }
 
     @Override
@@ -54,9 +54,7 @@ public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>> {
         int reportedPinCount = getReportedPinCount();
         int pinsToFetchCount;
 
-        if (isFullScan) {
-            pinsToFetchCount = reportedPinCount;
-        } else {
+        if (isIncrementalBackup) {
             int downloadedPinsCount = downloadedPins.size();
             pinsToFetchCount = reportedPinCount - downloadedPinsCount;
 
@@ -64,6 +62,8 @@ public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>> {
                 // return null to prevent further processing, but do not try to fetch more.
                 return null;
             }
+        } else {
+            pinsToFetchCount = reportedPinCount;
         }
 
         AtomicInteger previousElCount = new AtomicInteger(0);

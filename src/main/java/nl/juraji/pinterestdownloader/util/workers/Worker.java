@@ -1,10 +1,8 @@
-package nl.juraji.pinterestdownloader.util.workers.workerutils;
+package nl.juraji.pinterestdownloader.util.workers;
 
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 
 import javax.swing.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by Juraji on 30-4-2018.

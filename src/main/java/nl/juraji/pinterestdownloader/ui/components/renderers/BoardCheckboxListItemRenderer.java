@@ -21,20 +21,20 @@ public class BoardCheckboxListItemRenderer extends JCheckBox implements ListCell
 
         if (value.getAvailablePinCount() > 0) {
             if (value.getDownloadedPinCount() == value.getAvailablePinCount()) {
-                setText(I18n.get("ui.backupPinsDialog.boardsListItem.withPinsComplete",
+                setText(I18n.get("ui.runBackups.boardsListItem.withPinsComplete",
                         value.getBoard().getName(),
                         value.getAvailablePinCount()
                 ));
             } else {
                 long missingPinsCount = value.getAvailablePinCount() - value.getDownloadedPinCount();
-                setText(I18n.get("ui.backupPinsDialog.boardsListItem.withPinsMissing",
+                setText(I18n.get("ui.runBackups.boardsListItem.withPinsMissing",
                         value.getBoard().getName(),
                         value.getAvailablePinCount(),
                         missingPinsCount
                 ));
             }
         } else {
-            setText(I18n.get("ui.backupPinsDialog.boardsListItem.pinCountUnknown", value.getBoard().getName()));
+            setText(I18n.get("ui.runBackups.boardsListItem.pinCountUnknown", value.getBoard().getName()));
         }
 
         return this;

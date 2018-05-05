@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.workers;
 
 import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
@@ -6,7 +6,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import nl.juraji.pinterestdownloader.Container;
 import nl.juraji.pinterestdownloader.resources.ScraperData;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.Worker;
+import nl.juraji.pinterestdownloader.util.workers.Worker;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -58,7 +58,7 @@ public abstract class PinterestScraperWorker<T> extends Worker<T> {
 
             WebElement usernameInput = getElement(ScraperData.by("xpath.loginPage.usernameField"));
             WebElement passwordInput = getElement(ScraperData.by("xpath.loginPage.passwordField"));
-            WebElement loginButton = getElement(ScraperData.by("xpath.loginPage.loginButton"));
+            WebElement loginButton = getElement(ScraperData.by("class.loginPage.loginButton"));
             if (usernameInput != null && passwordInput != null) {
                 usernameInput.sendKeys(username);
                 passwordInput.sendKeys(password);

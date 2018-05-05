@@ -1,11 +1,11 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.workers;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItem;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.Worker;
+import nl.juraji.pinterestdownloader.util.workers.Worker;
 
 import java.nio.file.Files;
 import java.util.List;

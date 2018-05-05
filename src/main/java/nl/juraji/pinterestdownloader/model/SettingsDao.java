@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
 import javax.inject.Singleton;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,9 +23,11 @@ import java.util.List;
 public class SettingsDao extends Dao<Settings> {
     private static final long SETTINGS_DEFAULT_ID = 1;
     private Settings settings;
+    private List<Runnable> stateOKRunnables;
 
     public SettingsDao() {
         super(Settings.class);
+        stateOKRunnables = new ArrayList<>();
     }
 
     @PostConstruct
@@ -95,5 +98,15 @@ public class SettingsDao extends Dao<Settings> {
 
     public void save() {
         super.save(settings);
+        if (validate()) {
+            stateOKRunnables.forEach(Runnable::run);
+        }
+    }
+
+    public void onStateOK(Runnable runnable) {
+        if (validate()) {
+            runnable.run();
+        }
+        this.stateOKRunnables.add(runnable);
     }
 }

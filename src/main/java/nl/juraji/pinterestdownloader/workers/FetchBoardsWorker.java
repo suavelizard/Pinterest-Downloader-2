@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.workers;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.resources.I18n;

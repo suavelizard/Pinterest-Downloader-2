@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.workers;
 
 import com.google.common.base.Strings;
 import nl.juraji.pinterestdownloader.model.Board;
@@ -7,7 +7,7 @@ import nl.juraji.pinterestdownloader.model.PinImageHash;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashBuilder;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.Worker;
+import nl.juraji.pinterestdownloader.util.workers.Worker;
 
 import java.io.File;
 import java.io.IOException;

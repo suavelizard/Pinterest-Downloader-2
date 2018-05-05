@@ -1,11 +1,11 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.workers;
 
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashComparator;
-import nl.juraji.pinterestdownloader.util.workers.workerutils.Worker;
+import nl.juraji.pinterestdownloader.util.workers.Worker;
 
 import java.util.ArrayList;
 import java.util.Comparator;

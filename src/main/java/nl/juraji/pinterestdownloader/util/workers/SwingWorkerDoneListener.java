@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.util.workers.workerutils;
+package nl.juraji.pinterestdownloader.util.workers;
 
 import javax.swing.*;
 import java.beans.PropertyChangeEvent;
