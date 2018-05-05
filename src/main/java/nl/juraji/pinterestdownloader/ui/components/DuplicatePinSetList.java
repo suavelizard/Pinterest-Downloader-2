@@ -1,7 +1,6 @@
 package nl.juraji.pinterestdownloader.ui.components;
 
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
-import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSetRenderer;
 
 import javax.swing.*;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.function.Consumer;
  */
 public class DuplicatePinSetList extends JList<DuplicatePinSet> {
     public DuplicatePinSetList() {
-        setCellRenderer(new DuplicatePinSetRenderer(false));
+        setCellRenderer(new DefaultListCellRenderer());
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         setModel(new DefaultListModel<>());
     }
@@ -22,9 +21,5 @@ public class DuplicatePinSetList extends JList<DuplicatePinSet> {
         DefaultListModel<DuplicatePinSet> model = (DefaultListModel<DuplicatePinSet>) getModel();
         duplicatePinSets.forEach(model::addElement);
         repaint();
-    }
-
-    public void onSetSelected(Consumer<DuplicatePinSet> runnable) {
-        this.addListSelectionListener(e -> runnable.accept(getModel().getElementAt(e.getFirstIndex())));
     }
 }

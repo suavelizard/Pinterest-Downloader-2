@@ -1,17 +1,20 @@
 package nl.juraji.pinterestdownloader.ui.panels;
 
+import nl.juraji.pinterestdownloader.model.Board;
+import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
-import nl.juraji.pinterestdownloader.model.PinDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsList;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
-import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSetRenderer;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.FormUtils;
-import nl.juraji.pinterestdownloader.workers.DuplicateScanWorker;
+import nl.juraji.pinterestdownloader.util.PinPreviewImageCache;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
+import nl.juraji.pinterestdownloader.workers.DuplicateScanWorker;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -27,10 +30,11 @@ public class DuplicateScannerPanel implements WindowPane {
     private JPanel contentPane;
     private JButton startScanButton;
     private DuplicatePinSetList duplicateSetList;
-    private JList<DuplicatePinSet> duplicateSetContentsList;
+    private DuplicatePinSetContentsList duplicateSetContentsList;
+    private JButton deletePinsButton;
 
     @Inject
-    private PinDao pinDao;
+    private BoardDao boardDao;
 
     @Inject
     private Instance<ProgressIndicator> indicatorInst;
@@ -38,7 +42,13 @@ public class DuplicateScannerPanel implements WindowPane {
     @PostConstruct
     private void init() {
         setupStartScanButton();
+        setupDeletePinsButton();
         setupDuplicateSetContentsList();
+    }
+
+    @PreDestroy
+    private void onDestroy() {
+        PinPreviewImageCache.destroy();
     }
 
     @Override
@@ -47,13 +57,35 @@ public class DuplicateScannerPanel implements WindowPane {
     }
 
     private void setupDuplicateSetContentsList() {
-        DefaultListModel<DuplicatePinSet> listModel = new DefaultListModel<>();
-        duplicateSetContentsList.setModel(new DefaultListModel<>());
-        duplicateSetContentsList.setCellRenderer(new DuplicatePinSetRenderer(true));
+        duplicateSetList.addListSelectionListener(e ->
+                duplicateSetContentsList.setDuplicatePinSet(
+                        duplicateSetList.getModel().getElementAt(e.getFirstIndex())));
+    }
 
-        duplicateSetList.onSetSelected(duplicatePinSet -> {
-            listModel.clear();
-            listModel.addElement(duplicatePinSet);
+    private void setupDeletePinsButton() {
+        deletePinsButton.addActionListener(e -> {
+            if (duplicateSetContentsList.hasItems()) {
+                List<Pin> pins = duplicateSetContentsList.getSelectedValuesList();
+                if (pins.size() > 0) {
+                    int choice = JOptionPane.showConfirmDialog(contentPane,
+                            I18n.get("ui.duplicateScanner.deletePins.alert"),
+                            I18n.get("ui.duplicateScanner.deletePins.alert.title", pins.size()),
+                            JOptionPane.YES_NO_OPTION);
+                    if (choice == JOptionPane.YES_OPTION) {
+                        pins.forEach(pin -> {
+                            final boolean deleted = pin.getFileOnDisk().delete();
+                            if (deleted) {
+                                final Board board = pin.getBoard();
+                                board.getPins().remove(pin);
+                                boardDao.save(board);
+                                pin.setFileOnDisk(null);
+                            }
+                        });
+
+                        duplicateSetContentsList.repaint();
+                    }
+                }
+            }
         });
     }
 
@@ -70,8 +102,8 @@ public class DuplicateScannerPanel implements WindowPane {
 
                     @Override
                     protected Void doInBackground() throws Exception {
-                        List<Pin> allPins = pinDao.get();
-                        pinDao.initPinImageHashes(allPins);
+                        List<Pin> allPins = boardDao.getAllPins();
+                        boardDao.initPinImageHashes(allPins);
 
                         DuplicateScanWorker worker = new DuplicateScanWorker(indicatorInst.get(), allPins);
                         worker.execute();

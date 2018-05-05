@@ -1,7 +1,7 @@
 package nl.juraji.pinterestdownloader.ui;
 
+import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
-import nl.juraji.pinterestdownloader.model.PinDao;
 import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.Icons;
@@ -122,18 +122,18 @@ public class MainWindowFrame extends JFrame {
     }
 
     private void runLocalCacheIntegrityCheck() {
-        PinDao pinDao = CDI.current().select(PinDao.class).get();
+        BoardDao dao = CDI.current().select(BoardDao.class).get();
         ProgressIndicator indicator = CDI.current().select(ProgressIndicator.class).get();
 
         FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(indicator, pinDao.get());
+        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(indicator, dao.get(Pin.class));
         worker.execute();
         worker.addPropertyChangeListener(new SwingWorkerDoneListener() {
             @Override
             protected void onWorkerDone() {
                 try {
                     List<Pin> updatedPins = worker.get();
-                    pinDao.save(updatedPins);
+                    dao.save(updatedPins);
                 } catch (InterruptedException | ExecutionException e) {
 //                    logger.log(Level.SEVERE, "Error validation pins to file associations!", e);
                 } finally {

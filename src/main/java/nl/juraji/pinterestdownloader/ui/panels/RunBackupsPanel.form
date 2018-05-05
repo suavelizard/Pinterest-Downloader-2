@@ -90,7 +90,7 @@
       </component>
       <component id="4b6c0" class="javax.swing.JButton" binding="backupBoardsButton">
         <constraints>
-          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text resource-bundle="data/i18n" key="ui.runBackups.backupBoardsButton"/>
@@ -99,11 +99,19 @@
       </component>
       <component id="de7ba" class="javax.swing.JCheckBox" binding="incrementalBackupCheckBox">
         <constraints>
-          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <selected value="true"/>
           <text resource-bundle="data/i18n" key="ui.runBackups.backupBoards.incrementalBackupCheckBox"/>
+        </properties>
+      </component>
+      <component id="59c40" class="javax.swing.JCheckBox" binding="downloadMissingPinsCheckBox" default-binding="true">
+        <constraints>
+          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="data/i18n" key="ui.runBackups.downloadOnlyCheckbox"/>
         </properties>
       </component>
     </children>

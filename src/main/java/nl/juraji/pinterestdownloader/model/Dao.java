@@ -13,17 +13,10 @@ import java.util.List;
  * Created by Juraji on 23-4-2018.
  * Pinterest Downloader
  */
-@SuppressWarnings({"CdiManagedBeanInconsistencyInspection", "unchecked"})
-public abstract class Dao<T> {
-
-    private final Class entityCls;
+public abstract class Dao {
 
     @Inject
     private EntityManagerFactory emf;
-
-    protected Dao(Class entityCls) {
-        this.entityCls = entityCls;
-    }
 
     protected Session getSession() {
         return emf.createEntityManager()
@@ -31,24 +24,23 @@ public abstract class Dao<T> {
                 .getSession();
     }
 
-    public List<T> get() {
+    public <T> List<T> get(Class<T> entityClass) {
         try (Session session = getSession()) {
             CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-            CriteriaQuery query = criteriaBuilder.createQuery(entityCls);
-            query.select(query.from(entityCls));
+            CriteriaQuery<T> query = criteriaBuilder.createQuery(entityClass);
+            query.select(query.from(entityClass));
 
             return session.createQuery(query).getResultList();
         }
-
     }
 
-    public T get(long id) {
+    public <T> T get(Class<T> entityClass, long id) {
         try (Session session = getSession()) {
-            return (T) session.get(entityCls, id);
+            return session.get(entityClass, id);
         }
     }
 
-    public void save(T entity) {
+    public void save(Object entity) {
         try (Session session = getSession()) {
             session.getTransaction().begin();
             Object mergedEntity = session.merge(entity);
@@ -57,7 +49,7 @@ public abstract class Dao<T> {
         }
     }
 
-    public void save(Collection<T> entities) {
+    public void save(Collection<?> entities) {
         try (Session session = getSession()) {
             session.getTransaction().begin();
             entities.stream()
@@ -67,12 +59,13 @@ public abstract class Dao<T> {
         }
     }
 
-    public void delete(T entity) {
+    public void delete(Object entity) {
         try (Session session = getSession()) {
             session.getTransaction().begin();
             Object mergedEntity = session.merge(entity);
             session.delete(mergedEntity);
             session.getTransaction().commit();
+            session.flush();
         }
     }
 }

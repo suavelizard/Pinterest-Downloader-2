@@ -20,19 +20,18 @@ import java.util.List;
  */
 @Default
 @Singleton
-public class SettingsDao extends Dao<Settings> {
+public class SettingsDao extends Dao {
     private static final long SETTINGS_DEFAULT_ID = 1;
     private Settings settings;
     private List<Runnable> stateOKRunnables;
 
     public SettingsDao() {
-        super(Settings.class);
         stateOKRunnables = new ArrayList<>();
     }
 
     @PostConstruct
     private void init() {
-        settings = super.get(SETTINGS_DEFAULT_ID);
+        settings = super.get(Settings.class, SETTINGS_DEFAULT_ID);
 
         if (settings == null) {
             settings = new Settings();
@@ -42,27 +41,27 @@ public class SettingsDao extends Dao<Settings> {
     }
 
     @Override
-    public List<Settings> get() {
+    public <T> List<T> get(Class<T> entityClass) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Settings get(long id) {
+    public <T> T get(Class<T> entityClass, long id) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void save(Settings entity) {
+    public void save(Object entity) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void save(Collection<Settings> entity) {
+    public void save(Collection<?> entities) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void delete(Settings entity) {
+    public void delete(Object entity) {
         throw new UnsupportedOperationException();
     }
 

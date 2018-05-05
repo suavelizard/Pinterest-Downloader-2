@@ -34,7 +34,7 @@ public class Pin {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private PinImageHash imageHash;
 
-    @ManyToOne(cascade = CascadeType.DETACH, fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private Board board;
 
     public Long getId() {

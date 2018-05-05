@@ -44,6 +44,7 @@ public class RunBackupsPanel implements WindowPane {
     private JButton deleteBoardsButton;
     private JButton selectIncompleteBoardsButton;
     private JCheckBox incrementalBackupCheckBox;
+    private JCheckBox downloadMissingPinsCheckBox;
 
     @Inject
     private Logger logger;
@@ -59,7 +60,7 @@ public class RunBackupsPanel implements WindowPane {
 
     @PostConstruct
     private void init() {
-        boardsList.updateBoards(boardDao.get());
+        boardsList.updateBoards(boardDao.get(Board.class));
         boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
         boardsList.setOnBoardUpdate(boardDao::save);
 
@@ -82,8 +83,7 @@ public class RunBackupsPanel implements WindowPane {
         fetchBoardsButton.addActionListener(evt -> {
             FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
-            FetchBoardsWorker scanner = new FetchBoardsWorker(indicatorInst.get(), settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(),
-                    boardDao.get());
+            FetchBoardsWorker scanner = new FetchBoardsWorker(indicatorInst.get(), settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class));
             scanner.execute();
             scanner.addPropertyChangeListener(new SwingWorkerDoneListener() {
                 @Override
@@ -104,6 +104,11 @@ public class RunBackupsPanel implements WindowPane {
     }
 
     private void setupBackupBoardsButton() {
+        downloadMissingPinsCheckBox.addActionListener(e -> {
+            incrementalBackupCheckBox.setSelected(!downloadMissingPinsCheckBox.isSelected());
+            incrementalBackupCheckBox.setEnabled(!downloadMissingPinsCheckBox.isSelected());
+        });
+
         backupBoardsButton.addActionListener(evt -> {
             List<BoardCheckboxListItem> selectedItems = boardsList.getSelectedItems();
 
@@ -121,20 +126,37 @@ public class RunBackupsPanel implements WindowPane {
                             String username = settingsDao.getPinterestUsername();
                             String password = settingsDao.getPinterestPassword();
                             File imageStore = settingsDao.getImageStore();
-                            boolean isIncrementalBackup = incrementalBackupCheckBox.isSelected();
+
+                            FetchPinsWorkerMode mode;
+                            if (downloadMissingPinsCheckBox.isSelected()) {
+                                mode = FetchPinsWorkerMode.DOWNLOAD_ONLY;
+                            } else if (incrementalBackupCheckBox.isSelected()) {
+                                mode = FetchPinsWorkerMode.INCREMENTAL_UPDATE;
+                            } else {
+                                mode = FetchPinsWorkerMode.FULL_UPDATE;
+                            }
 
                             for (BoardCheckboxListItem item : selectedItems) {
                                 Board board = item.getBoard();
 
-                                try {
-                                    FetchPinsWorker scanner = new FetchPinsWorker(indicatorInst.get(), username, password, board, isIncrementalBackup);
 
-                                    scanner.execute();
-                                    List<Pin> pins = scanner.get();
+                                try {
+                                    List<Pin> pins;
+
+                                    if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
+                                        FetchPinsWorker scanner = new FetchPinsWorker(indicatorInst.get(), username, password, board, mode);
+
+                                        scanner.execute();
+                                        pins = scanner.get();
+
+                                        if (pins != null) {
+                                            board.getPins().addAll(pins);
+                                        }
+                                    } else {
+                                        pins = board.getPins();
+                                    }
 
                                     if (pins != null) {
-                                        board.getPins().addAll(pins);
-
                                         PinsDownloadWorker downloadWorker = new PinsDownloadWorker(indicatorInst.get(), board, imageStore);
                                         downloadWorker.execute();
                                         // Run get() in order to block wrapping worker thread
@@ -197,7 +219,7 @@ public class RunBackupsPanel implements WindowPane {
                             selectedItems.iterator().forEachRemaining(item ->
                                     boardDao.delete(item.getBoard()));
 
-                            boardsList.updateBoards(boardDao.get());
+                            boardsList.updateBoards(boardDao.get(Board.class));
                             formLock.unlock();
                         }
                     });

@@ -10,6 +10,8 @@ import java.util.List;
  * pinterestdownloader
  */
 public class DuplicatePinSet {
+    private static final int PIN_ID_TRIM_SIZE = 17;
+
     private final Pin parentPin;
     private final List<Pin> duplicates;
     private final String displayName;
@@ -17,8 +19,11 @@ public class DuplicatePinSet {
     public DuplicatePinSet(Pin parentPin, List<Pin> duplicates) {
         this.parentPin = parentPin;
         this.duplicates = duplicates;
+
+        final String pinId = parentPin.getPinId();
+        String pinDisplayId = (pinId.length() > PIN_ID_TRIM_SIZE? pinId.substring(0, PIN_ID_TRIM_SIZE): pinId);
         this.displayName = I18n.get("ui.duplicateScanner.duplicatePinSet.displayName",
-                parentPin.getPinId(),
+                pinDisplayId,
                 duplicates.size());
     }
 

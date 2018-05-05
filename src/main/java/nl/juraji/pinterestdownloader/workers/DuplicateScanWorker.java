@@ -46,6 +46,7 @@ public class DuplicateScanWorker extends Worker<List<DuplicatePinSet>> {
                             .collect(Collectors.toList());
 
                     if (collect.size() > 0) {
+                        compareList.remove(parentPin);
                         return new DuplicatePinSet(parentPin, collect);
                     } else {
                         return null;

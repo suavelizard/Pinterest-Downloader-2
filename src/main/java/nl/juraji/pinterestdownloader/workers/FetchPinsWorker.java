@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>> {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final Board board;
-    private final boolean isIncrementalBackup;
+    private final FetchPinsWorkerMode mode;
 
-    public FetchPinsWorker(ProgressIndicator indicator, String username, String password, Board board, boolean isIncrementalBackup) {
+    public FetchPinsWorker(ProgressIndicator indicator, String username, String password, Board board, FetchPinsWorkerMode mode) {
         super(indicator, username, password);
         this.board = board;
-        this.isIncrementalBackup = isIncrementalBackup;
+        this.mode = mode;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>> {
         int reportedPinCount = getReportedPinCount();
         int pinsToFetchCount;
 
-        if (isIncrementalBackup) {
+        if (FetchPinsWorkerMode.INCREMENTAL_UPDATE.equals(mode)) {
             int downloadedPinsCount = downloadedPins.size();
             pinsToFetchCount = reportedPinCount - downloadedPinsCount;
 
