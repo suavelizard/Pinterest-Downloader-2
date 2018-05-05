@@ -1,0 +1,53 @@
+<?xml encoding="UTF-8"?>
+
+        <!ELEMENT magic (info,match-list)>
+        <!ATTLIST magic
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT info (version,author,description)>
+        <!ATTLIST info
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT version (#PCDATA)>
+        <!ATTLIST version
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT author (#PCDATA)>
+        <!ATTLIST author
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT description (#PCDATA)>
+        <!ATTLIST description
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT match-list (match)*>
+        <!ATTLIST match-list
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT match (description|match-list|extension|mimetype|property
+                |test)*>
+        <!ATTLIST match
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT extension (#PCDATA)>
+        <!ATTLIST extension
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT mimetype (#PCDATA)>
+        <!ATTLIST mimetype
+                xmlns CDATA #FIXED ''>
+
+        <!ELEMENT property EMPTY>
+        <!ATTLIST property
+                xmlns CDATA #FIXED ''
+                name NMTOKEN #REQUIRED
+                value NMTOKEN #REQUIRED>
+
+        <!ELEMENT test (#PCDATA)>
+        <!ATTLIST test
+                xmlns CDATA #FIXED ''
+                bitmask CDATA #IMPLIED
+                comparator CDATA #REQUIRED
+                length CDATA #IMPLIED
+                offset CDATA #REQUIRED
+                type NMTOKEN #REQUIRED>

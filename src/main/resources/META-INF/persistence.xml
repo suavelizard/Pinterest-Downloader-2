@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+
+    <!-- Internal database setup -->
+    <persistence-unit name="PinterestDownloader-H2-DS" transaction-type="JTA">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <class>nl.juraji.pinterestdownloader.model.Settings</class>
+        <class>nl.juraji.pinterestdownloader.model.Board</class>
+        <class>nl.juraji.pinterestdownloader.model.Pin</class>
+        <class>nl.juraji.pinterestdownloader.model.PinImageHash</class>
+
+        <properties>
+            <property name="hibernate.flushMode" value="AUTO"/>
+            <property name="hibernate.connection.driver_class" value="org.h2.Driver"/>
+            <property name="hibernate.connection.url" value="jdbc:h2:file:./store"/>
+            <property name="hibernate.connection.username" value="pinterestdownloader"/>
+            <property name="hibernate.connection.password" value="pinterestdownloader"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+            <property name="hibernate.hbm2ddl.jdbc_metadata_extraction_strategy" value="individually"/>
+
+            <property name="hibernate.transaction.coordinator_class" value="jdbc"/>
+        </properties>
+    </persistence-unit>
+</persistence>

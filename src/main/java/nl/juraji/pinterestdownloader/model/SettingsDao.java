@@ -1,0 +1,99 @@
+package nl.juraji.pinterestdownloader.model;
+
+import com.google.common.base.Strings;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.inject.Default;
+import javax.inject.Singleton;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * Created by Juraji on 23-4-2018.
+ * Pinterest Downloader
+ * <p>
+ * Since there's always gonna be no more than one Settings object
+ * this class will hold a reference to this entity and delegate it's methods.
+ * This makes accessing and manipulating the settings easier
+ */
+@Default
+@Singleton
+public class SettingsDao extends Dao<Settings> {
+    private static final long SETTINGS_DEFAULT_ID = 1;
+    private Settings settings;
+
+    public SettingsDao() {
+        super(Settings.class);
+    }
+
+    @PostConstruct
+    private void init() {
+        settings = super.get(SETTINGS_DEFAULT_ID);
+
+        if (settings == null) {
+            settings = new Settings();
+            settings.setId(SETTINGS_DEFAULT_ID);
+            super.save(settings);
+        }
+    }
+
+    @Override
+    public List<Settings> get() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Settings get(long id) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void save(Settings entity) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void save(Collection<Settings> entity) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void delete(Settings entity) {
+        throw new UnsupportedOperationException();
+    }
+
+    public String getPinterestUsername() {
+        return settings.getPinterestUsername();
+    }
+
+    public void setPinterestUsername(String pinterestUsername) {
+        settings.setPinterestUsername(pinterestUsername);
+    }
+
+    public String getPinterestPassword() {
+        return settings.getPinterestPassword();
+    }
+
+    public void setPinterestPassword(String pinterestPassword) {
+        settings.setPinterestPassword(pinterestPassword);
+    }
+
+    public File getImageStore() {
+        return settings.getImageStore();
+    }
+
+    public void setImageStore(File imageStore) {
+        settings.setImageStore(imageStore);
+    }
+
+    public boolean validate() {
+        return getImageStore() != null
+                && !Strings.isNullOrEmpty(getPinterestUsername())
+                && !Strings.isNullOrEmpty(getPinterestPassword());
+    }
+
+    public void save() {
+        super.save(settings);
+    }
+}
