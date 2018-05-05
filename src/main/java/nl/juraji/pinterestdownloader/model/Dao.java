@@ -51,7 +51,8 @@ public abstract class Dao<T> {
     public void save(T entity) {
         try (Session session = getSession()) {
             session.getTransaction().begin();
-            session.saveOrUpdate(entity);
+            Object mergedEntity = session.merge(entity);
+            session.saveOrUpdate(mergedEntity);
             session.getTransaction().commit();
         }
     }
@@ -59,7 +60,9 @@ public abstract class Dao<T> {
     public void save(Collection<T> entities) {
         try (Session session = getSession()) {
             session.getTransaction().begin();
-            entities.forEach(session::saveOrUpdate);
+            entities.stream()
+                    .map(session::merge)
+                    .forEach(session::saveOrUpdate);
             session.getTransaction().commit();
         }
     }
@@ -67,7 +70,8 @@ public abstract class Dao<T> {
     public void delete(T entity) {
         try (Session session = getSession()) {
             session.getTransaction().begin();
-            session.delete(entity);
+            Object mergedEntity = session.merge(entity);
+            session.delete(mergedEntity);
             session.getTransaction().commit();
         }
     }

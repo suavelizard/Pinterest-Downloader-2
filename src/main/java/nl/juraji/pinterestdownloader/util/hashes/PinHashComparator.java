@@ -5,7 +5,6 @@ import nl.juraji.pinterestdownloader.model.PinImageHash;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
 /**
  * Created by Juraji on 29-4-2018.
