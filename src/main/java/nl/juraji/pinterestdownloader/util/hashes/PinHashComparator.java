@@ -27,7 +27,7 @@ public final class PinHashComparator {
      */
     public boolean compare(Pin a, Pin b) {
         // If either or both results are null the pins don't match
-        if (notNullCheck(a) || notNullCheck(b)) {
+        if (notNullCheck(a) && notNullCheck(b)) {
             PinImageHash hashA = a.getImageHash();
             PinImageHash hashB = b.getImageHash();
             // Calculate hamming similarity of pin hash if contrasts are equal

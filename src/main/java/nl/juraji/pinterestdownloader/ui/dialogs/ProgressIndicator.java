@@ -34,7 +34,10 @@ public class ProgressIndicator extends JDialog {
     }
 
     public void setProgressBarMax(int max) {
+        progressBar.setVisible(true);
+        progressLabel.setVisible(true);
         progressBar.setMaximum(max);
+        progressBar.setValue(0);
     }
 
     public void setProgressBarValue(int value) {
@@ -50,11 +53,6 @@ public class ProgressIndicator extends JDialog {
     public void resetProgressBar() {
         counter.set(0);
         progressBar.setValue(0);
-    }
-
-    public void hideProgressBar() {
-        progressBar.setVisible(false);
-        progressLabel.setVisible(false);
     }
 
     private void updateLabel(int current) {
