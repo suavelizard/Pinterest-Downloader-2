@@ -1,59 +1,59 @@
 package nl.juraji.pinterestdownloader.workers;
 
+import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashComparator;
-import nl.juraji.pinterestdownloader.util.workers.Worker;
+import nl.juraji.pinterestdownloader.util.workers.PublishingWorker;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 /**
  * Created by Juraji on 2-5-2018.
  * pinterestdownloader
  */
-public class DuplicateScanWorker extends Worker<List<DuplicatePinSet>> {
-    private final List<Pin> pins;
+public class DuplicateScanWorker extends PublishingWorker<DuplicatePinSet> {
 
-    public DuplicateScanWorker(ProgressIndicator indicator, List<Pin> pins) {
+    private final Board board;
+
+    public DuplicateScanWorker(ProgressIndicator indicator, Board board) {
         super(indicator);
-        this.pins = pins;
+        this.board = board;
     }
 
     @Override
-    protected List<DuplicatePinSet> doInBackground() {
-        getIndicator().setTask(I18n.get("worker.duplicateScanWorker.taskName"));
+    protected Void doInBackground() {
+        getIndicator().setTask(I18n.get("worker.duplicateScanWorker.taskName", board.getName()));
 
-        getIndicator().setAction(I18n.get("worker.duplicateScanWorker.scanning", this.pins.size()));
+        final List<Pin> pins = board.getPins();
+        getIndicator().setAction(I18n.get("worker.duplicateScanWorker.scanning", pins.size()));
         getIndicator().setProgressBarMax(pins.size());
 
         PinHashComparator comparator = new PinHashComparator();
-        ArrayList<Pin> compareList = new ArrayList<>(this.pins);
+        final ConcurrentLinkedDeque<Pin> compareQueue = new ConcurrentLinkedDeque<>(pins);
 
-        return this.pins.stream()
+        pins.stream()
                 .peek(ign -> getIndicator().incrementProgressBar())
                 .parallel()
-                .map(parentPin -> {
-                    List<Pin> collect = compareList.stream()
+                .forEach(parentPin -> {
+                    List<Pin> collect = compareQueue.stream()
                             .filter(p -> !parentPin.equals(p))
                             .filter(p -> comparator.compare(parentPin, p))
+                            .peek(compareQueue::remove)
                             .sorted(Comparator.comparingLong(p -> ((Pin) p).getImageHash().getQualityRating()).reversed())
-                            .peek(compareList::remove)
                             .collect(Collectors.toList());
 
                     if (collect.size() > 0) {
-                        compareList.remove(parentPin);
-                        return new DuplicatePinSet(parentPin, collect);
-                    } else {
-                        return null;
+                        compareQueue.remove(parentPin);
+                        publish(new DuplicatePinSet(parentPin, collect));
                     }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                });
+
+        return null;
     }
 }

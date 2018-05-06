@@ -50,7 +50,7 @@ public class BoardCheckboxListItem {
         this.availablePinCount = board.getPins().size();
         if (this.availablePinCount > 0) {
             this.downloadedPinCount = board.getPins().stream()
-                    .filter(pin -> pin.getFileOnDisk()!= null)
+                    .filter(pin -> pin.getFileOnDisk() != null)
                     .count();
         }
     }

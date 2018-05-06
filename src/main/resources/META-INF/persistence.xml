@@ -16,7 +16,7 @@
         <properties>
             <property name="hibernate.flushMode" value="AUTO"/>
             <property name="hibernate.connection.driver_class" value="org.h2.Driver"/>
-            <property name="hibernate.connection.url" value="jdbc:h2:file:./store"/>
+            <property name="hibernate.connection.url" value="jdbc:h2:file:./store;COMPRESS=TRUE;DEFRAG_ALWAYS=TRUE"/>
             <property name="hibernate.connection.username" value="pinterestdownloader"/>
             <property name="hibernate.connection.password" value="pinterestdownloader"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>

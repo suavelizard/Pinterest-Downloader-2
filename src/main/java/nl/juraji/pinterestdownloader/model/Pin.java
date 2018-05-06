@@ -29,8 +29,7 @@ public class Pin {
     @Column(length = 1024)
     private File fileOnDisk;
 
-    // Should be loaded via PinImageHashDao or if no-session issue is fixed
-    @PrimaryKeyJoinColumn
+    // Should be loaded via BoardDao::initPinImageHashes or if no-session issue is fixed
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private PinImageHash imageHash;
 

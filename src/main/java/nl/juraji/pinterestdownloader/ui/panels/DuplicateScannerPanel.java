@@ -57,9 +57,12 @@ public class DuplicateScannerPanel implements WindowPane {
     }
 
     private void setupDuplicateSetContentsList() {
-        duplicateSetList.addListSelectionListener(e ->
-                duplicateSetContentsList.setDuplicatePinSet(
-                        duplicateSetList.getModel().getElementAt(e.getFirstIndex())));
+        duplicateSetList.addListSelectionListener(e -> {
+            if (e.getLastIndex() != -1) {
+                final DuplicatePinSet element = duplicateSetList.getModel().getElementAt(e.getLastIndex());
+                duplicateSetContentsList.setDuplicatePinSet(element);
+            }
+        });
     }
 
     private void setupDeletePinsButton() {
@@ -97,19 +100,31 @@ public class DuplicateScannerPanel implements WindowPane {
                     JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-
+                duplicateSetList.clear();
+                duplicateSetContentsList.clear();
                 WrappingWorker worker = new WrappingWorker() {
 
                     @Override
                     protected Void doInBackground() throws Exception {
-                        List<Pin> allPins = boardDao.getAllPins();
-                        boardDao.initPinImageHashes(allPins);
+                        final List<Board> boards = boardDao.get(Board.class);
 
-                        DuplicateScanWorker worker = new DuplicateScanWorker(indicatorInst.get(), allPins);
-                        worker.execute();
-                        List<DuplicatePinSet> duplicatePinSets = worker.get();
+                        for (Board board : boards) {
+                            if (board.getPins().size() > 0) {
+                                board = boardDao.initPinImageHashes(board);
 
-                        duplicateSetList.addSets(duplicatePinSets);
+                                DuplicateScanWorker worker = new DuplicateScanWorker(indicatorInst.get(), board) {
+
+                                    @Override
+                                    public void process(List<DuplicatePinSet> chunks) {
+                                        duplicateSetList.addSets(chunks);
+                                    }
+                                };
+
+                                worker.execute();
+                                worker.get();
+                            }
+                        }
+
                         return null;
                     }
 

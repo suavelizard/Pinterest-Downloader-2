@@ -3,16 +3,14 @@ package nl.juraji.pinterestdownloader.util.hashes;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.model.PinImageHash;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 /**
  * Created by Juraji on 29-4-2018.
  * Pinterest Downloader
  */
 public final class PinHashComparator {
     // The minimum percentage of similarity for two hashes to be considered equal.
-    private static final int MINIMUM_SIMILARITY = 85;
+    private static final double HASH_LENGTH = 9900;
+    private static final double MAXIMUM_DISTANCE = 1000;
 
     /**
      * Test if the 2 PinImageHash objects equal by contents
@@ -32,8 +30,8 @@ public final class PinHashComparator {
             PinImageHash hashB = b.getImageHash();
             // Calculate hamming similarity of pin hash if contrasts are equal
             if (hashA.getContrast().equals(hashB.getContrast())) {
-                int percentage = computeHammingSimilarityPercentage(hashA.getHash(), hashB.getHash());
-                return percentage >= MINIMUM_SIMILARITY;
+                double distance = computeHammingDistance(hashA.getHash(), hashB.getHash());
+                return distance <= MAXIMUM_DISTANCE;
             }
         }
 
@@ -47,23 +45,10 @@ public final class PinHashComparator {
                 || pin.getImageHash().getHash() == null);
     }
 
-    private int computeHammingSimilarityPercentage(String a, String b) {
-        int maxDistance = a.length();
-        int invDistance = maxDistance - computeHammingDistance(a, b, maxDistance);
-
-        if (invDistance == 0) {
-            return 0;
-        } else {
-            BigDecimal percentage = new BigDecimal(invDistance / maxDistance * 100d)
-                    .setScale(0, RoundingMode.HALF_EVEN);
-            return percentage.intValueExact();
-        }
-    }
-
-    private int computeHammingDistance(String a, String b, double maxDistance) {
+    private int computeHammingDistance(String a, String b) {
         int distance = 0;
 
-        for (int i = 0; i < maxDistance; i++) {
+        for (int i = 0; i < HASH_LENGTH; i++) {
             if (a.charAt(i) != b.charAt(i)) {
                 distance++;
             }

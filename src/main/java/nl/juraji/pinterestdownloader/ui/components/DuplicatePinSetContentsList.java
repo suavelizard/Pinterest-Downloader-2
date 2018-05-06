@@ -53,4 +53,10 @@ public class DuplicatePinSetContentsList extends JList<Pin> {
     public boolean hasItems() {
         return getModel().getSize() > 0;
     }
+
+    public void clear() {
+        DefaultListModel<Pin> model = (DefaultListModel<Pin>) getModel();
+        model.clear();
+        repaint();
+    }
 }

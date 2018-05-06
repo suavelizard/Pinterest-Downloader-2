@@ -32,6 +32,7 @@ public class DbPinValidityCheckWorker extends Worker<List<Pin>> {
                 .peek(pin -> getIndicator().incrementProgressBar())
                 .filter(pin -> pin.getFileOnDisk() != null && !pin.getFileOnDisk().exists())
                 .peek(pin -> pin.setFileOnDisk(null))
+                .peek(pin -> pin.setImageHash(null))
                 .collect(Collectors.toList());
     }
 }

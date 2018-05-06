@@ -22,4 +22,10 @@ public class DuplicatePinSetList extends JList<DuplicatePinSet> {
         duplicatePinSets.forEach(model::addElement);
         repaint();
     }
+
+    public void clear() {
+        DefaultListModel<DuplicatePinSet> model = (DefaultListModel<DuplicatePinSet>) getModel();
+        model.clear();
+        repaint();
+    }
 }
