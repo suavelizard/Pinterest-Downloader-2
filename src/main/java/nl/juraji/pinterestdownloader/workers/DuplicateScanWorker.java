@@ -37,6 +37,7 @@ public class DuplicateScanWorker extends Worker<List<DuplicatePinSet>> {
 
         return this.pins.stream()
                 .peek(ign -> getIndicator().incrementProgressBar())
+                .parallel()
                 .map(parentPin -> {
                     List<Pin> collect = compareList.stream()
                             .filter(p -> !parentPin.equals(p))
