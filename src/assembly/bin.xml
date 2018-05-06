@@ -21,10 +21,17 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.build.directory}</directory>
-            <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}/src/assembly/windows-runner</directory>
+            <outputDirectory>./</outputDirectory>
             <includes>
-                <include>pinterest-downloader-${project.version}.jar</include>
+                <include>run.exe</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>./</outputDirectory>
+            <includes>
+                <include>pinterest-downloader.jar</include>
                 <include>lib/*</include>
             </includes>
         </fileSet>

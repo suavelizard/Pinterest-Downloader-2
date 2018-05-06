@@ -41,7 +41,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <finalName>pinterest-downloader-${project.version}</finalName>
+                    <finalName>pinterest-downloader</finalName>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

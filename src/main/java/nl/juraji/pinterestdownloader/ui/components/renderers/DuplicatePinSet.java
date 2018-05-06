@@ -25,7 +25,7 @@ public class DuplicatePinSet {
                 .sorted(Comparator.comparingLong(p -> ((Pin) p).getImageHash().getQualityRating()).reversed())
                 .collect(Collectors.toList());
 
-        boardName = TextUtils.trimFill(boardName, BOARD_NAME_TRIM_SIZE, true);
+        boardName = TextUtils.trim(boardName, BOARD_NAME_TRIM_SIZE, true);
         boardName = boardName.replaceAll(" ", "&nbsp;");
         String parentPinDisplayId = TextUtils.trim(parentPin.getPinId(), PIN_ID_TRIM_SIZE);
         this.displayName = I18n.get("ui.duplicateScanner.duplicatePinSet.displayName",

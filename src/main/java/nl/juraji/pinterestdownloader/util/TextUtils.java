@@ -1,7 +1,5 @@
 package nl.juraji.pinterestdownloader.util;
 
-import com.google.common.base.Strings;
-
 /**
  * Created by Juraji on 6-5-2018.
  * Pinterest Downloader
@@ -23,10 +21,5 @@ public class TextUtils {
         }
 
         return src;
-    }
-
-    public static String trimFill(String src, int length, boolean ellipsis) {
-        src = trim(src, length, ellipsis);
-        return Strings.padEnd(src, length, ' ');
     }
 }
