@@ -5,6 +5,7 @@ import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsList;
+import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsListContextMenu;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
@@ -33,7 +34,6 @@ public class DuplicateScannerPanel implements WindowPane {
     private JButton startScanButton;
     private DuplicatePinSetList duplicateSetList;
     private DuplicatePinSetContentsList duplicateSetContentsList;
-    private JButton deletePinsButton;
     private JCheckBox scanPerBoardCheckBox;
 
     @Inject
@@ -45,7 +45,6 @@ public class DuplicateScannerPanel implements WindowPane {
     @PostConstruct
     private void init() {
         setupStartScanButton();
-        setupDeletePinsButton();
         setupDuplicateSetContentsList();
     }
 
@@ -61,37 +60,32 @@ public class DuplicateScannerPanel implements WindowPane {
 
     private void setupDuplicateSetContentsList() {
         duplicateSetList.addListSelectionListener(e -> {
-            final int index = duplicateSetList.getSelectedIndex();
-            if (index != -1) {
-                final DuplicatePinSet element = duplicateSetList.getModel().getElementAt(index);
-                duplicateSetContentsList.setDuplicatePinSet(element);
+            final DuplicatePinSet set = duplicateSetList.getSelectedValue();
+            if (set != null) {
+                duplicateSetContentsList.setDuplicatePinSet(set);
             }
         });
-    }
 
-    private void setupDeletePinsButton() {
-        deletePinsButton.addActionListener(e -> {
-            if (duplicateSetContentsList.hasItems()) {
-                List<Pin> pins = duplicateSetContentsList.getSelectedValuesList();
-                if (pins.size() > 0) {
-                    int choice = JOptionPane.showConfirmDialog(contentPane,
-                            I18n.get("ui.duplicateScanner.deletePins.alert"),
-                            I18n.get("ui.duplicateScanner.deletePins.alert.title", pins.size()),
-                            JOptionPane.YES_NO_OPTION);
-                    if (choice == JOptionPane.YES_OPTION) {
-                        pins.forEach(pin -> {
-                            final boolean deleted = pin.getFileOnDisk().delete();
-                            if (deleted) {
-                                final Board board = pin.getBoard();
-                                board.getPins().remove(pin);
-                                boardDao.save(board);
-                                pin.setFileOnDisk(null);
-                            }
-                        });
+        duplicateSetContentsList.setPopupMenu(new DuplicatePinSetContentsListContextMenu() {
+            @Override
+            public Pin getSelectedPin() {
+                return duplicateSetContentsList.getSelectedValue();
+            }
 
-                        duplicateSetContentsList.repaint();
-                    }
+            @Override
+            public void deletePin(Pin pin) {
+                final boolean deleted = pin.getFileOnDisk().delete();
+                if (deleted) {
+                    final Board board = pin.getBoard();
+                    board.getPins().remove(pin);
+                    boardDao.save(board);
+                    pin.setFileOnDisk(null);
                 }
+            }
+
+            @Override
+            public void repaintParent() {
+                duplicateSetContentsList.repaint();
             }
         });
     }

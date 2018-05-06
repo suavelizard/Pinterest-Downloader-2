@@ -29,6 +29,8 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by Juraji on 5-5-2018.
@@ -45,6 +47,9 @@ public class MainWindowFrame extends JFrame {
     private JLabel devInfoLabel;
 
     private AtomicReference<WindowPane> currentPaneRef;
+
+    @Inject
+    private Logger logger;
 
     @Inject
     private SettingsDao settingsDao;
@@ -115,7 +120,7 @@ public class MainWindowFrame extends JFrame {
                         Desktop.getDesktop().browse(new URI(I18n.get("ui.main.devInfoBar.link")));
                     }
                 } catch (IOException | URISyntaxException e1) {
-                    e1.printStackTrace();
+                    logger.log(Level.SEVERE, "Error opening browser", e);
                 }
             }
         });

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.awt.RenderingHints.*;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -20,8 +22,8 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
  */
 public class PinPreviewImageCache {
 
-    private static final int MAX_PREVIEW_SIZE = 100;
     private static final AtomicReference<PinPreviewImageCache> CACHE = new AtomicReference<>();
+    public static final int PREVIEW_SIZE = 100;
 
     private final Map<Long, ImageIcon> previewCache = new HashMap<>();
     private final Color transparentColor = new Color(0, 0, 0, 0);
@@ -53,14 +55,14 @@ public class PinPreviewImageCache {
                     BufferedImage image = ImageIO.read(pin.getFileOnDisk());
                     double imgWidth = image.getWidth();
                     double imgHeight = image.getHeight();
-                    double ratio = Math.min((MAX_PREVIEW_SIZE / imgWidth), (MAX_PREVIEW_SIZE / imgHeight));
+                    double ratio = Math.min((PREVIEW_SIZE / imgWidth), (PREVIEW_SIZE / imgHeight));
 
                     int tgtWidth = (int) (imgWidth * ratio);
                     int tgtHeight = (int) (imgHeight * ratio);
-                    int xOffset = (MAX_PREVIEW_SIZE - tgtWidth) / 2;
-                    int yOffset = (MAX_PREVIEW_SIZE - tgtHeight) / 2;
+                    int xOffset = (PREVIEW_SIZE - tgtWidth) / 2;
+                    int yOffset = (PREVIEW_SIZE - tgtHeight) / 2;
 
-                    BufferedImage resizeImage = new BufferedImage(MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE, TYPE_INT_ARGB);
+                    BufferedImage resizeImage = new BufferedImage(PREVIEW_SIZE, PREVIEW_SIZE, TYPE_INT_ARGB);
                     Graphics2D graphics = resizeImage.createGraphics();
                     graphics.setComposite(AlphaComposite.Src);
                     graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
@@ -79,7 +81,7 @@ public class PinPreviewImageCache {
 
                 return null;
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error opening file", e);
             }
         }
 

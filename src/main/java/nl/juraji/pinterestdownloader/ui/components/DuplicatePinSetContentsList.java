@@ -1,6 +1,7 @@
 package nl.juraji.pinterestdownloader.ui.components;
 
 import nl.juraji.pinterestdownloader.model.Pin;
+import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.ui.components.renderers.PinListItemRenderer;
 
@@ -17,25 +18,13 @@ import java.net.URISyntaxException;
  * Pinterest Downloader
  */
 public class DuplicatePinSetContentsList extends JList<Pin> {
+    private JPopupMenu popupMenu;
+
     public DuplicatePinSetContentsList() {
         setCellRenderer(new PinListItemRenderer());
         setModel(new DefaultListModel<>());
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent evt) {
-                if (evt.getClickCount() == 2 && Desktop.isDesktopSupported()) {
-                    try {
-                        setSelectedIndex(locationToIndex(evt.getPoint()));
-                        final Pin pin = getSelectedValue();
-                        Desktop.getDesktop().browse(new URI(pin.getUrl()));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+        setupContextMenuTrigger();
     }
 
     public void setDuplicatePinSet(DuplicatePinSet set) {
@@ -57,5 +46,31 @@ public class DuplicatePinSetContentsList extends JList<Pin> {
         DefaultListModel<Pin> model = (DefaultListModel<Pin>) getModel();
         model.clear();
         repaint();
+    }
+
+    public void setPopupMenu(JPopupMenu popupMenu) {
+        this.popupMenu = popupMenu;
+    }
+
+    private void setupContextMenuTrigger() {
+        DuplicatePinSetContentsList that = this;
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                checkPopup(e);
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                checkPopup(e);
+            }
+
+            private void checkPopup(MouseEvent e) {
+                if (e.isPopupTrigger() && popupMenu != null) {
+                    setSelectedIndex(locationToIndex(e.getPoint()));
+                    popupMenu.show(that, e.getX(), e.getY());
+                }
+            }
+        });
     }
 }

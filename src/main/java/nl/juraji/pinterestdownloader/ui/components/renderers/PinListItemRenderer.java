@@ -6,6 +6,7 @@ import nl.juraji.pinterestdownloader.util.FileUtils;
 import nl.juraji.pinterestdownloader.util.PinPreviewImageCache;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
@@ -31,7 +32,13 @@ public class PinListItemRenderer implements ListCellRenderer<Pin> {
         ));
 
         final Icon previewImage = PinPreviewImageCache.getPreview(value);
-        label.setIcon(previewImage);
+        if (previewImage == null) {
+            label.setBorder(new EmptyBorder(0, PinPreviewImageCache.PREVIEW_SIZE, 0, 0));
+        } else {
+            label.setIcon(previewImage);
+        }
+
+        label.setInheritsPopupMenu(true);
 
         return label;
     }

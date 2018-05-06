@@ -10,6 +10,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by Juraji on 24-4-2018.
@@ -27,6 +29,9 @@ public class SettingsPanel implements WindowPane {
     private JButton settingsSaveButton;
     private JPasswordField pinterestPasswordField;
     private JButton openOutputLocationButton;
+
+    @Inject
+    private Logger logger;
 
     @Inject
     private SettingsDao settings;
@@ -68,7 +73,7 @@ public class SettingsPanel implements WindowPane {
             try {
                 Desktop.getDesktop().open(settings.getImageStore());
             } catch (IOException e1) {
-                e1.printStackTrace();
+                logger.log(Level.SEVERE, "Error opening image store", e);
             }
         });
 
