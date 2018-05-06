@@ -44,8 +44,7 @@ public class DuplicatePinSetContentsList extends JList<Pin> {
         clearSelection();
 
         model.clear();
-        model.addElement(set.getParentPin());
-        set.getDuplicates().forEach(model::addElement);
+        set.getPins().forEach(model::addElement);
 
         repaint();
     }

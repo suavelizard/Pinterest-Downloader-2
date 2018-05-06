@@ -19,10 +19,10 @@ public class PinListItemRenderer implements ListCellRenderer<Pin> {
     public Component getListCellRendererComponent(JList<? extends Pin> list, Pin value, int index, boolean isSelected, boolean cellHasFocus) {
         final JLabel label = (JLabel) defaultListCellRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
-        label.setToolTipText(I18n.get("ui.duplicateScanner.duplicatePins.label.tooltip"));
         label.setText(I18n.get(
                 "ui.duplicateScanner.duplicatePins.label.template",
-                value.getFileOnDisk()==null?I18n.get("ui.duplicateScanner.duplicatePins.label.deletedPin"):value.getFileOnDisk().getAbsolutePath(),
+                value.getBoard().getName(),
+                getPath(value),
                 value.getPinId(),
                 FileUtils.bytesInHumanReadable(value.getImageHash().getImageSizeBytes()),
                 value.getImageHash().getImageWidth(),
@@ -34,5 +34,14 @@ public class PinListItemRenderer implements ListCellRenderer<Pin> {
         label.setIcon(previewImage);
 
         return label;
+    }
+
+    private String getPath(Pin value) {
+        if (value.getFileOnDisk() == null) {
+            return I18n.get("ui.duplicateScanner.duplicatePins.label.deletedPin");
+        } else {
+            return value.getFileOnDisk().getAbsolutePath()
+                    .replaceAll("\\\\", "\\\\\\\\");
+        }
     }
 }

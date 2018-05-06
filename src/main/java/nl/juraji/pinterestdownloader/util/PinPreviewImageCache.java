@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.awt.RenderingHints.*;
-import static java.awt.image.BufferedImage.TYPE_INT_RGB;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 /**
  * Created by Juraji on 6-5-2018.
@@ -24,6 +24,7 @@ public class PinPreviewImageCache {
     private static final AtomicReference<PinPreviewImageCache> CACHE = new AtomicReference<>();
 
     private final Map<Long, ImageIcon> previewCache = new HashMap<>();
+    private final Color transparentColor = new Color(0, 0, 0, 0);
 
     public static ImageIcon getPreview(Pin pin) {
         PinPreviewImageCache cache = CACHE.get();
@@ -59,12 +60,13 @@ public class PinPreviewImageCache {
                     int xOffset = (MAX_PREVIEW_SIZE - tgtWidth) / 2;
                     int yOffset = (MAX_PREVIEW_SIZE - tgtHeight) / 2;
 
-                    BufferedImage resizeImage = new BufferedImage(MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE, TYPE_INT_RGB);
+                    BufferedImage resizeImage = new BufferedImage(MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE, TYPE_INT_ARGB);
                     Graphics2D graphics = resizeImage.createGraphics();
                     graphics.setComposite(AlphaComposite.Src);
                     graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
                     graphics.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
                     graphics.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+                    graphics.setBackground(transparentColor);
                     graphics.drawImage(image, xOffset, yOffset, tgtWidth, tgtHeight, null);
                     graphics.dispose();
 

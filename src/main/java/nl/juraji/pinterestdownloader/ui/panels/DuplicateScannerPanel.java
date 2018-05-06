@@ -19,7 +19,9 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Juraji on 1-5-2018.
@@ -32,6 +34,7 @@ public class DuplicateScannerPanel implements WindowPane {
     private DuplicatePinSetList duplicateSetList;
     private DuplicatePinSetContentsList duplicateSetContentsList;
     private JButton deletePinsButton;
+    private JCheckBox scanPerBoardCheckBox;
 
     @Inject
     private BoardDao boardDao;
@@ -59,7 +62,8 @@ public class DuplicateScannerPanel implements WindowPane {
     private void setupDuplicateSetContentsList() {
         duplicateSetList.addListSelectionListener(e -> {
             if (e.getLastIndex() != -1) {
-                final DuplicatePinSet element = duplicateSetList.getModel().getElementAt(e.getLastIndex());
+                final int index = duplicateSetList.getSelectedIndex();
+                final DuplicatePinSet element = duplicateSetList.getModel().getElementAt(index);
                 duplicateSetContentsList.setDuplicatePinSet(element);
             }
         });
@@ -95,8 +99,8 @@ public class DuplicateScannerPanel implements WindowPane {
     private void setupStartScanButton() {
         startScanButton.addActionListener(evt -> {
             int choice = JOptionPane.showConfirmDialog(contentPane,
-                    I18n.get("ui.runBackups.scan.alert"),
-                    I18n.get("ui.runBackups.scan.alert.title"),
+                    I18n.get("ui.duplicateScanner.scan.alert"),
+                    I18n.get("ui.duplicateScanner.scan.alert.title"),
                     JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
@@ -106,23 +110,29 @@ public class DuplicateScannerPanel implements WindowPane {
 
                     @Override
                     protected Void doInBackground() throws Exception {
-                        final List<Board> boards = boardDao.get(Board.class);
+                        final List<Board> boards = boardDao.get(Board.class).stream()
+                                .filter(board -> board.getPins().size() > 0)
+                                .map(boardDao::initPinImageHashes)
+                                .collect(Collectors.toList());
+                        List<DuplicateScanWorker> workers = new ArrayList<>();
 
-                        for (Board board : boards) {
-                            if (board.getPins().size() > 0) {
-                                board = boardDao.initPinImageHashes(board);
+                        if (scanPerBoardCheckBox.isSelected()) {
+                            boards.stream()
+                                    .map(board -> new DuplicateScanWorker(indicatorInst.get(), board, duplicateSetList))
+                                    .forEach(workers::add);
+                        } else {
+                            Board allPinsBoard = new Board();
+                            allPinsBoard.setName(I18n.get("worker.duplicateScanWorker.allBoards"));
+                            boards.stream()
+                                    .map(Board::getPins)
+                                    .forEach(pins -> allPinsBoard.getPins().addAll(pins));
 
-                                DuplicateScanWorker worker = new DuplicateScanWorker(indicatorInst.get(), board) {
+                            workers.add(new DuplicateScanWorker(indicatorInst.get(), allPinsBoard, duplicateSetList));
+                        }
 
-                                    @Override
-                                    public void process(List<DuplicatePinSet> chunks) {
-                                        duplicateSetList.addSets(chunks);
-                                    }
-                                };
-
-                                worker.execute();
-                                worker.get();
-                            }
+                        for (DuplicateScanWorker worker : workers) {
+                            worker.execute();
+                            worker.get();
                         }
 
                         return null;

@@ -3,6 +3,7 @@ package nl.juraji.pinterestdownloader.workers;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashComparator;
@@ -20,10 +21,12 @@ import java.util.stream.Collectors;
 public class DuplicateScanWorker extends PublishingWorker<DuplicatePinSet> {
 
     private final Board board;
+    private final DuplicatePinSetList duplicatePinSetList;
 
-    public DuplicateScanWorker(ProgressIndicator indicator, Board board) {
+    public DuplicateScanWorker(ProgressIndicator indicator, Board board, DuplicatePinSetList duplicatePinSetList) {
         super(indicator);
         this.board = board;
+        this.duplicatePinSetList = duplicatePinSetList;
     }
 
     @Override
@@ -45,15 +48,19 @@ public class DuplicateScanWorker extends PublishingWorker<DuplicatePinSet> {
                             .filter(p -> !parentPin.equals(p))
                             .filter(p -> comparator.compare(parentPin, p))
                             .peek(compareQueue::remove)
-                            .sorted(Comparator.comparingLong(p -> ((Pin) p).getImageHash().getQualityRating()).reversed())
                             .collect(Collectors.toList());
 
                     if (collect.size() > 0) {
                         compareQueue.remove(parentPin);
-                        publish(new DuplicatePinSet(parentPin, collect));
+                        publish(new DuplicatePinSet(board.getName(), parentPin, collect));
                     }
                 });
 
         return null;
+    }
+
+    @Override
+    public void process(List<DuplicatePinSet> chunks) {
+        duplicatePinSetList.addSets(chunks);
     }
 }
