@@ -2,6 +2,7 @@ package nl.juraji.pinterestdownloader.ui.components.renderers;
 
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.util.TextUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Stream;
  * pinterestdownloader
  */
 public class DuplicatePinSet {
+    private static final int BOARD_NAME_TRIM_SIZE = 20;
     private static final int PIN_ID_TRIM_SIZE = 17;
 
     private final List<Pin> pins;
@@ -23,12 +25,13 @@ public class DuplicatePinSet {
                 .sorted(Comparator.comparingLong(p -> ((Pin) p).getImageHash().getQualityRating()).reversed())
                 .collect(Collectors.toList());
 
-        String parentPinDisplayId = this.formatPinId(parentPin.getPinId());
+        boardName = TextUtils.trimFill(boardName, BOARD_NAME_TRIM_SIZE, true);
+        boardName = boardName.replaceAll(" ", "&nbsp;");
+        String parentPinDisplayId = TextUtils.trim(parentPin.getPinId(), PIN_ID_TRIM_SIZE);
         this.displayName = I18n.get("ui.duplicateScanner.duplicatePinSet.displayName",
                 boardName,
                 parentPinDisplayId,
                 pins.size());
-        ;
     }
 
     public List<Pin> getPins() {
@@ -38,13 +41,5 @@ public class DuplicatePinSet {
     @Override
     public String toString() {
         return this.displayName;
-    }
-
-    private String formatPinId(String id) {
-        if (id.length() > PIN_ID_TRIM_SIZE + 1) {
-            return id.substring(0, PIN_ID_TRIM_SIZE);
-        } else {
-            return id;
-        }
     }
 }

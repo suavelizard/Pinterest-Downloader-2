@@ -61,8 +61,8 @@ public class DuplicateScannerPanel implements WindowPane {
 
     private void setupDuplicateSetContentsList() {
         duplicateSetList.addListSelectionListener(e -> {
-            if (e.getLastIndex() != -1) {
-                final int index = duplicateSetList.getSelectedIndex();
+            final int index = duplicateSetList.getSelectedIndex();
+            if (index != -1) {
                 final DuplicatePinSet element = duplicateSetList.getModel().getElementAt(index);
                 duplicateSetContentsList.setDuplicatePinSet(element);
             }
