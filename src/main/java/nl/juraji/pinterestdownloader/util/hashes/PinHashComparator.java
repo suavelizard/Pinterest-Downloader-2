@@ -11,8 +11,7 @@ import java.util.BitSet;
  */
 public final class PinHashComparator {
     // The minimum percentage of similarity for two hashes to be considered equal.
-    private static final double HASH_LENGTH = 9900;
-    private static final double MAXIMUM_DISTANCE = 1000;
+    private static final int MAXIMUM_DISTANCE = 1000;
 
     /**
      * Test if the 2 PinImageHash objects equal by contents
@@ -48,11 +47,12 @@ public final class PinHashComparator {
     }
 
     private int computeBitwiseHammingDistance(BitSet a, BitSet b) {
-        int distance = 0;
+        final int len = a.size();
+        int distance = len;
 
-        for (int i = 0; i < HASH_LENGTH; i++) {
+        for (int i = 0; i < len; i++) {
             if (a.get(i) == b.get(i)) {
-                distance++;
+                distance--;
             }
         }
 
