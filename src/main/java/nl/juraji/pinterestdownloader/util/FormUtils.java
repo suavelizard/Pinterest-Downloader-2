@@ -1,6 +1,8 @@
 package nl.juraji.pinterestdownloader.util;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Juraji on 27-4-2018.
@@ -21,38 +23,31 @@ public final class FormUtils {
         );
     }
 
-    public static void moveAbove(Component component, Component target, int marginPx) {
-        Point targetLocation = target.getLocation();
-        Dimension targetSize = target.getSize();
-        Dimension componentSize = component.getSize();
-        component.setLocation(
-                targetLocation.x + (targetSize.width / 2 - componentSize.width / 2),
-                targetLocation.y - (componentSize.height + marginPx)
-        );
-    }
-
     public static FormLock lockForm(Container form) {
         return new FormLock(form);
     }
 
     public static final class FormLock {
         private final Container form;
+        private final Map<Component, Boolean> componentStates;
 
         private FormLock(Container form) {
             this.form = form;
-            this.setEnabled(this.form, false);
+            componentStates = new HashMap<>();
+            this.disableComponents(this.form);
         }
 
         public void unlock() {
-            this.setEnabled(form, true);
+            this.componentStates.forEach(Component::setEnabled);
         }
 
-        private void setEnabled(Component component, boolean enable) {
-            component.setEnabled(enable);
+        private void disableComponents(Component component) {
+            componentStates.put(component, component.isEnabled());
+            component.setEnabled(false);
             if (component instanceof Container) {
                 Component[] children = ((Container) component).getComponents();
                 for (Component child : children) {
-                    this.setEnabled(child, enable);
+                    this.disableComponents(child);
                 }
             }
         }

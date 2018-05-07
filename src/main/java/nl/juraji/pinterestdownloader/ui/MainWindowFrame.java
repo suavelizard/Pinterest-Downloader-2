@@ -83,11 +83,6 @@ public class MainWindowFrame extends JFrame {
     }
 
     private void setupTabButtons() {
-        settingsDao.onStateOK(() -> {
-            runBackupsButton.setEnabled(true);
-            duplicateScannerButton.setEnabled(true);
-        });
-
         settingsButton.addActionListener(e -> switchPanel(windowPanes.select(SettingsPanel.class)));
         runBackupsButton.addActionListener(e -> switchPanel(windowPanes.select(RunBackupsPanel.class)));
         duplicateScannerButton.addActionListener(e -> switchPanel(windowPanes.select(DuplicateScannerPanel.class)));

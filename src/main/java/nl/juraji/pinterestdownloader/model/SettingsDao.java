@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
 import javax.inject.Singleton;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -23,11 +22,6 @@ import java.util.List;
 public class SettingsDao extends Dao {
     private static final long SETTINGS_DEFAULT_ID = 1;
     private Settings settings;
-    private List<Runnable> stateOKRunnables;
-
-    public SettingsDao() {
-        stateOKRunnables = new ArrayList<>();
-    }
 
     @PostConstruct
     private void init() {
@@ -89,23 +83,7 @@ public class SettingsDao extends Dao {
         settings.setImageStore(imageStore);
     }
 
-    public boolean validate() {
-        return getImageStore() != null
-                && !Strings.isNullOrEmpty(getPinterestUsername())
-                && !Strings.isNullOrEmpty(getPinterestPassword());
-    }
-
     public void save() {
         super.save(settings);
-        if (validate()) {
-            stateOKRunnables.forEach(Runnable::run);
-        }
-    }
-
-    public void onStateOK(Runnable runnable) {
-        if (validate()) {
-            runnable.run();
-        }
-        this.stateOKRunnables.add(runnable);
     }
 }
