@@ -3,6 +3,8 @@ package nl.juraji.pinterestdownloader.util.hashes;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.model.PinImageHash;
 
+import java.util.BitSet;
+
 /**
  * Created by Juraji on 29-4-2018.
  * Pinterest Downloader
@@ -30,7 +32,7 @@ public final class PinHashComparator {
             PinImageHash hashB = b.getImageHash();
             // Calculate hamming similarity of pin hash if contrasts are equal
             if (hashA.getContrast().equals(hashB.getContrast())) {
-                double distance = computeHammingDistance(hashA.getHash(), hashB.getHash());
+                double distance = computeBitwiseHammingDistance(hashA.getHash(), hashB.getHash());
                 return distance <= MAXIMUM_DISTANCE;
             }
         }
@@ -45,11 +47,11 @@ public final class PinHashComparator {
                 || pin.getImageHash().getHash() == null);
     }
 
-    private int computeHammingDistance(String a, String b) {
+    private int computeBitwiseHammingDistance(BitSet a, BitSet b) {
         int distance = 0;
 
         for (int i = 0; i < HASH_LENGTH; i++) {
-            if (a.charAt(i) != b.charAt(i)) {
+            if (a.get(i) == b.get(i)) {
                 distance++;
             }
         }

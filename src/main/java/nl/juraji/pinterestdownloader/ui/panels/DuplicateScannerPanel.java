@@ -74,12 +74,17 @@ public class DuplicateScannerPanel implements WindowPane {
 
             @Override
             public void deletePin(Pin pin) {
-                final boolean deleted = pin.getFileOnDisk().delete();
+                boolean deleted = false;
+                try {
+                    deleted = pin.getFileOnDisk().delete();
+                } catch (Exception ignored) {
+                }
+
                 if (deleted) {
-                    final Board board = pin.getBoard();
+                    pin.setFileOnDisk(null);
+                    final Board board = boardDao.get(Board.class, pin.getBoard().getId());
                     board.getPins().remove(pin);
                     boardDao.save(board);
-                    pin.setFileOnDisk(null);
                 }
             }
 

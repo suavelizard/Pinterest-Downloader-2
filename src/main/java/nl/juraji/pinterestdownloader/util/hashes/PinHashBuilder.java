@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.BitSet;
 
 import static java.awt.RenderingHints.*;
 import static java.awt.image.BufferedImage.TYPE_BYTE_GRAY;
@@ -19,6 +20,7 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_GRAY;
  */
 public final class PinHashBuilder {
     private static final int SAMPLE_SIZE = 100;
+    private static final int HASH_OUTPUT_SIZE = 9900;
 
     public PinImageHash build(Pin pin) throws IOException {
         BufferedImage image = ImageIO.read(pin.getFileOnDisk());
@@ -27,13 +29,13 @@ public final class PinHashBuilder {
         BufferedImage resizeImage = resizeAndGrayScale(image);
         image.flush();
 
-        StringBuilder hashBuilder = new StringBuilder();
-        int averageRGB = generateHash(resizeImage, hashBuilder);
+        BitSet hashBitSet = new BitSet(HASH_OUTPUT_SIZE);
+        int averageRGB = generateHash(resizeImage, hashBitSet);
         resizeImage.flush();
 
         PinImageHash hash = new PinImageHash();
         hash.setContrast(Contrast.forRGB(averageRGB));
-        hash.setHash(hashBuilder.toString());
+        hash.setHash(hashBitSet);
         hash.setQualityRating(qualityRating);
         hash.setImageWidth(image.getWidth());
         hash.setImageHeight(image.getHeight());
@@ -58,7 +60,7 @@ public final class PinHashBuilder {
         return resizeImage;
     }
 
-    private int generateHash(BufferedImage image, StringBuilder sb) {
+    private int generateHash(BufferedImage image, BitSet set) {
         // The last column is ignored due to it
         // not having a next column for comparison
         int scanXCount = image.getWidth() - 1;
@@ -70,7 +72,7 @@ public final class PinHashBuilder {
             for (int x = 0; x < scanXCount; x++) {
                 int rgbA = image.getRGB(x, y) & 255;
                 int rgbB = image.getRGB(x + 1, y) & 255;
-                sb.append(rgbA < rgbB ? '+' : '-');
+                set.set(x + y, rgbA < rgbB);
                 totalRGB += rgbA;
             }
         }

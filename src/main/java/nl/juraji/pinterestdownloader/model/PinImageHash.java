@@ -1,6 +1,7 @@
 package nl.juraji.pinterestdownloader.model;
 
 import javax.persistence.*;
+import java.util.BitSet;
 
 /**
  * Created by Juraji on 27-4-2018.
@@ -16,8 +17,8 @@ public class PinImageHash {
     @Column
     private long qualityRating;
 
-    @Column(length = 10000)
-    private String hash;
+    @Column(length = 3000)
+    private BitSet hash;
 
     @Column
     private Contrast contrast;
@@ -47,11 +48,11 @@ public class PinImageHash {
         this.qualityRating = qualityRating;
     }
 
-    public String getHash() {
+    public BitSet getHash() {
         return hash;
     }
 
-    public void setHash(String hash) {
+    public void setHash(BitSet hash) {
         this.hash = hash;
     }
 
