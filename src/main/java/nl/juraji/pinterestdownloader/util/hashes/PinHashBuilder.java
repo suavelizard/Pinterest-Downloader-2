@@ -67,13 +67,15 @@ public final class PinHashBuilder {
         int scanYCount = image.getHeight();
         int totalXY = scanXCount * scanYCount;
         long totalRGB = 0;
+        int iter = 0;
 
         for (int y = 0; y < scanYCount; y++) {
             for (int x = 0; x < scanXCount; x++) {
                 int rgbA = image.getRGB(x, y) & 255;
                 int rgbB = image.getRGB(x + 1, y) & 255;
-                set.set(x + y, rgbA < rgbB);
+                set.set(iter, rgbA < rgbB);
                 totalRGB += rgbA;
+                ++iter;
             }
         }
 

@@ -31,7 +31,7 @@ public final class PinHashComparator {
             PinImageHash hashB = b.getImageHash();
             // Calculate hamming similarity of pin hash if contrasts are equal
             if (hashA.getContrast().equals(hashB.getContrast())) {
-                double distance = computeBitwiseHammingDistance(hashA.getHash(), hashB.getHash());
+                double distance = computeBitwiseEqualityDistance(hashA.getHash(), hashB.getHash());
                 return distance <= MAXIMUM_DISTANCE;
             }
         }
@@ -46,16 +46,9 @@ public final class PinHashComparator {
                 || pin.getImageHash().getHash() == null);
     }
 
-    private int computeBitwiseHammingDistance(BitSet a, BitSet b) {
-        final int len = a.size();
-        int distance = len;
-
-        for (int i = 0; i < len; i++) {
-            if (a.get(i) == b.get(i)) {
-                distance--;
-            }
-        }
-
-        return distance;
+    private int computeBitwiseEqualityDistance(BitSet a, BitSet b) {
+        BitSet xor = (BitSet) a.clone();
+        xor.xor(b);
+        return xor.cardinality();
     }
 }
