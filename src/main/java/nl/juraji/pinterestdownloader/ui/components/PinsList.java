@@ -35,8 +35,6 @@ public class PinsList extends JList<Pin> {
 
         model.clear();
         model.addAll(pins);
-
-        repaint();
     }
 
     public void clear() {

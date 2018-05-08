@@ -19,9 +19,7 @@ public abstract class IndicatingWorker<T, V> extends SwingWorker<T, V> {
 
     @Override
     protected void done() {
-        if (indicator.isVisible()) {
-            indicator.setVisible(false);
-        }
+        indicator.dispose();
     }
 
     protected ProgressIndicator getIndicator() {

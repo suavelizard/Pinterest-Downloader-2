@@ -46,11 +46,11 @@ public class BoardViewPanel implements WindowPane {
 
     private void setupBoardContentsList() {
         boardsList.addListSelectionListener(e -> {
-            Board board = boardsList.getSelectedValue();
+            final Board board = boardsList.getSelectedValue();
             if (board != null) {
-                board = boardDao.initPinImageHashes(board);
-                if (board != null) {
-                    boardContentList.setPins(board.getPins());
+                Board b = boardDao.initPinImageHashes(board);
+                if (b != null) {
+                    boardContentList.setPins(b.getPins());
                 }
             }
         });

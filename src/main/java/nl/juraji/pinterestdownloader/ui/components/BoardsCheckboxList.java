@@ -61,8 +61,6 @@ public class BoardsCheckboxList extends JList<BoardCheckboxListItem> {
                 .sorted(Comparator.comparing(Board::getName))
                 .map(BoardCheckboxListItem::new)
                 .forEach(model::add);
-
-        repaint();
     }
 
     public void setOnBoardUpdate(Consumer<Board> onBoardUpdate) {
