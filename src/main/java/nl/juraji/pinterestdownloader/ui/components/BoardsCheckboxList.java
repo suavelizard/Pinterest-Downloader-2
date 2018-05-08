@@ -74,9 +74,8 @@ public class BoardsCheckboxList extends JList<BoardCheckboxListItem> {
     }
 
     public void updateSelectionFor(Predicate<BoardCheckboxListItem> predicate) {
-        ((ArrayListModel<BoardCheckboxListItem>) getModel()).stream()
-                .filter(predicate)
-                .forEach(item -> item.setSelected(true));
+        ((ArrayListModel<BoardCheckboxListItem>) getModel())
+                .forEach(item -> item.setSelected(predicate.test(item)));
 
         repaint();
     }
