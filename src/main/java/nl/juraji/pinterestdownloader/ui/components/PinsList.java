@@ -8,15 +8,16 @@ import nl.juraji.pinterestdownloader.util.ArrayListModel;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 /**
  * Created by Juraji on 5-5-2018.
  * Pinterest Downloader
  */
-public class DuplicatePinSetContentsList extends JList<Pin> {
+public class PinsList extends JList<Pin> {
     private JPopupMenu popupMenu;
 
-    public DuplicatePinSetContentsList() {
+    public PinsList() {
         setCellRenderer(new PinListItemRenderer());
         setModel(new ArrayListModel<>());
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -24,18 +25,18 @@ public class DuplicatePinSetContentsList extends JList<Pin> {
     }
 
     public void setDuplicatePinSet(DuplicatePinSet set) {
+        this.setPins(set.getPins());
+    }
+
+    public void setPins(List<Pin> pins) {
         final ArrayListModel<Pin> model = (ArrayListModel<Pin>) this.getModel();
 
         clearSelection();
 
         model.clear();
-        model.addAll(set.getPins());
+        model.addAll(pins);
 
         repaint();
-    }
-
-    public boolean hasItems() {
-        return getModel().getSize() > 0;
     }
 
     public void clear() {
@@ -48,7 +49,7 @@ public class DuplicatePinSetContentsList extends JList<Pin> {
     }
 
     private void setupContextMenuTrigger() {
-        final DuplicatePinSetContentsList that = this;
+        final PinsList that = this;
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {

@@ -2,11 +2,10 @@ package nl.juraji.pinterestdownloader.ui.panels;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.BoardDao;
-import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsList;
-import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsListContextMenu;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
+import nl.juraji.pinterestdownloader.ui.components.PinsList;
+import nl.juraji.pinterestdownloader.ui.components.PinsListContextMenu;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.util.PinPreviewImageCache;
@@ -31,7 +30,7 @@ public class DuplicateScannerPanel implements WindowPane {
     private JPanel contentPane;
     private JButton startScanButton;
     private DuplicatePinSetList duplicateSetList;
-    private DuplicatePinSetContentsList duplicateSetContentsList;
+    private PinsList duplicateSetContentsList;
     private JCheckBox scanPerBoardCheckBox;
 
     @Inject
@@ -61,33 +60,7 @@ public class DuplicateScannerPanel implements WindowPane {
             }
         });
 
-        duplicateSetContentsList.setPopupMenu(new DuplicatePinSetContentsListContextMenu() {
-            @Override
-            public Pin getSelectedPin() {
-                return duplicateSetContentsList.getSelectedValue();
-            }
-
-            @Override
-            public void deletePin(Pin pin) {
-                boolean deleted = false;
-                try {
-                    deleted = pin.getFileOnDisk().delete();
-                } catch (Exception ignored) {
-                }
-
-                if (deleted) {
-                    pin.setFileOnDisk(null);
-                    final Board board = boardDao.get(Board.class, pin.getBoard().getId());
-                    board.getPins().remove(pin);
-                    boardDao.save(board);
-                }
-            }
-
-            @Override
-            public void repaintParent() {
-                duplicateSetContentsList.repaint();
-            }
-        });
+        duplicateSetContentsList.setPopupMenu(new PinsListContextMenu(duplicateSetContentsList, boardDao));
     }
 
     private void setupStartScanButton() {

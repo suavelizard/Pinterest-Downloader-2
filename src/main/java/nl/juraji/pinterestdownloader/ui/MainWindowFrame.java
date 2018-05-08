@@ -4,10 +4,7 @@ import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.Icons;
-import nl.juraji.pinterestdownloader.ui.panels.DuplicateScannerPanel;
-import nl.juraji.pinterestdownloader.ui.panels.RunBackupsPanel;
-import nl.juraji.pinterestdownloader.ui.panels.SettingsPanel;
-import nl.juraji.pinterestdownloader.ui.panels.WindowPane;
+import nl.juraji.pinterestdownloader.ui.panels.*;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
 
@@ -40,6 +37,7 @@ public class MainWindowFrame extends JFrame {
     private JButton settingsButton;
     private JButton runBackupsButton;
     private JButton duplicateScannerButton;
+    private JButton browseBoardsButton;
     private JLabel devInfoLabel;
 
     private AtomicReference<WindowPane> currentPaneRef;
@@ -79,6 +77,7 @@ public class MainWindowFrame extends JFrame {
         settingsButton.addActionListener(e -> switchPanel(windowPanes.select(SettingsPanel.class)));
         runBackupsButton.addActionListener(e -> switchPanel(windowPanes.select(RunBackupsPanel.class)));
         duplicateScannerButton.addActionListener(e -> switchPanel(windowPanes.select(DuplicateScannerPanel.class)));
+        browseBoardsButton.addActionListener(e -> switchPanel(windowPanes.select(BoardViewPanel.class)));
     }
 
     private void switchPanel(Instance<? extends WindowPane> instance) {

@@ -12,7 +12,7 @@ import java.util.List;
 public class DuplicatePinSetList extends JList<DuplicatePinSet> {
     public DuplicatePinSetList() {
         setCellRenderer(new DefaultListCellRenderer());
-        setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setModel(new DefaultListModel<>());
     }
 
