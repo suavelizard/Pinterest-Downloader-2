@@ -19,7 +19,11 @@ public final class I18n {
 
         if (params != null && params.length > 0) {
             for (Object param : params) {
-                string = string.replaceFirst("\\{}", String.valueOf(param));
+                if(param instanceof String) {
+                    string = string.replaceFirst("\\{}", (String) param);
+                } else {
+                    string = string.replaceFirst("\\{}", String.valueOf(param));
+                }
             }
         }
 

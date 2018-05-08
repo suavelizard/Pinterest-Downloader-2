@@ -3,10 +3,8 @@ package nl.juraji.pinterestdownloader.ui.components.renderers;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.util.FileUtils;
-import nl.juraji.pinterestdownloader.util.PinPreviewImageCache;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
@@ -17,37 +15,40 @@ public class PinListItemRenderer implements ListCellRenderer<Pin> {
     private final DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer();
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends Pin> list, Pin value, int index, boolean isSelected, boolean cellHasFocus) {
-        final JLabel label = (JLabel) defaultListCellRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+    public Component getListCellRendererComponent(JList<? extends Pin> list, Pin pin, int index, boolean isSelected, boolean cellHasFocus) {
+        final JLabel label = (JLabel) defaultListCellRenderer.getListCellRendererComponent(list, pin, index, isSelected, cellHasFocus);
 
-        label.setText(I18n.get(
-                "ui.duplicateScanner.duplicatePins.label.template",
-                value.getBoard().getName(),
-                getPath(value),
-                value.getPinId(),
-                FileUtils.bytesInHumanReadable(value.getImageHash().getImageSizeBytes()),
-                value.getImageHash().getImageWidth(),
-                value.getImageHash().getImageHeight(),
-                value.getImageHash().getContrast()
-        ));
+        final String imgPath = getPath(pin);
+        final int imageWidth = pin.getImageHash().getImageWidth();
+        final int imageHeight = pin.getImageHash().getImageHeight();
+        double ratio = (100.0 / imageWidth);
+        int tgtWidth = (int) (imageWidth * ratio);
+        int tgtHeight = (int) (imageHeight * ratio);
 
-        final Icon previewImage = PinPreviewImageCache.getPreview(value);
-        if (previewImage == null) {
-            label.setBorder(new EmptyBorder(0, PinPreviewImageCache.PREVIEW_SIZE, 0, 0));
-        } else {
-            label.setIcon(previewImage);
-        }
+        String wrapper = I18n.get("ui.duplicateScanner.duplicatePins.label.template.wrapper",
+                imgPath,
+                tgtWidth,
+                tgtHeight,
+                pin.getBoard().getName(),
+                imgPath,
+                pin.getPinId(),
+                FileUtils.bytesInHumanReadable(pin.getImageHash().getImageSizeBytes()),
+                imageWidth,
+                imageHeight,
+                pin.getImageHash().getContrast());
 
+
+        label.setText(wrapper);
         label.setInheritsPopupMenu(true);
 
         return label;
     }
 
-    private String getPath(Pin value) {
-        if (value.getFileOnDisk() == null) {
+    private String getPath(Pin pin) {
+        if (pin.getFileOnDisk() == null) {
             return I18n.get("ui.duplicateScanner.duplicatePins.label.deletedPin");
         } else {
-            return value.getFileOnDisk().getAbsolutePath()
+            return pin.getFileOnDisk().getAbsolutePath()
                     .replaceAll("\\\\", "\\\\\\\\");
         }
     }

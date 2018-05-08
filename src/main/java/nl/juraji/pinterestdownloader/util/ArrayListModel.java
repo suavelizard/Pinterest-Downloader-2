@@ -80,10 +80,10 @@ public class ArrayListModel<T> extends AbstractListModel<T> implements List<T> {
 
     @Override
     public boolean addAll(@NotNull Collection<? extends T> c) {
+        final int s = lastIndex();
         final boolean b = backingList.addAll(c);
         if (b) {
-            final int s = lastIndex();
-            fireIntervalAdded(this, s - c.size(), s);
+            fireIntervalAdded(this, s, s + c.size());
         }
         return b;
     }
