@@ -39,8 +39,6 @@ public class BoardViewPanel implements WindowPane {
     private void setupBoardsList() {
         final List<Board> boards = boardDao.get(Board.class).stream()
                 .sorted(Comparator.comparing(Board::getName))
-                .filter(board -> board.getPins().size() > 0)
-                .map(boardDao::initPinImageHashes)
                 .collect(Collectors.toList());
 
         boardsList.setBoards(boards);
@@ -48,9 +46,12 @@ public class BoardViewPanel implements WindowPane {
 
     private void setupBoardContentsList() {
         boardsList.addListSelectionListener(e -> {
-            final Board board = boardsList.getSelectedValue();
+            Board board = boardsList.getSelectedValue();
             if (board != null) {
-                boardContentList.setPins(board.getPins());
+                board = boardDao.initPinImageHashes(board);
+                if (board != null) {
+                    boardContentList.setPins(board.getPins());
+                }
             }
         });
 
