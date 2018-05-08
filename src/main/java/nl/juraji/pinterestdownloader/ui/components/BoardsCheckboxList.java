@@ -3,6 +3,7 @@ package nl.juraji.pinterestdownloader.ui.components;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItem;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItemRenderer;
+import nl.juraji.pinterestdownloader.util.ArrayListModel;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Created by Juraji on 25-4-2018.
@@ -24,7 +26,7 @@ public class BoardsCheckboxList extends JList<BoardCheckboxListItem> {
     public BoardsCheckboxList() {
         setCellRenderer(new BoardCheckboxListItemRenderer());
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        setModel(new DefaultListModel<>());
+        setModel(new ArrayListModel<>());
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -44,16 +46,21 @@ public class BoardsCheckboxList extends JList<BoardCheckboxListItem> {
     }
 
     public void updateBoards(List<Board> boards, boolean append) {
-        DefaultListModel<BoardCheckboxListItem> model = (DefaultListModel<BoardCheckboxListItem>) getModel();
+        ArrayListModel<BoardCheckboxListItem> model = (ArrayListModel<BoardCheckboxListItem>) getModel();
 
-        if (!append) {
+        if (append) {
+            boards = new ArrayList<>(boards);
+            model.stream()
+                    .map(BoardCheckboxListItem::getBoard)
+                    .forEach(boards::add);
+        } else {
             model.clear();
         }
 
         boards.stream()
                 .sorted(Comparator.comparing(Board::getName))
                 .map(BoardCheckboxListItem::new)
-                .forEach(model::addElement);
+                .forEach(model::add);
 
         repaint();
     }
@@ -67,27 +74,16 @@ public class BoardsCheckboxList extends JList<BoardCheckboxListItem> {
     }
 
     public void updateSelectionFor(Predicate<BoardCheckboxListItem> predicate) {
-        ListModel<BoardCheckboxListItem> model = getModel();
-
-        for (int i = 0; i < model.getSize(); i++) {
-            BoardCheckboxListItem item = model.getElementAt(i);
-            item.setSelected(predicate.test(item));
-        }
+        ((ArrayListModel<BoardCheckboxListItem>) getModel()).stream()
+                .filter(predicate)
+                .forEach(item -> item.setSelected(true));
 
         repaint();
     }
 
     public List<BoardCheckboxListItem> getSelectedItems() {
-        List<BoardCheckboxListItem> result = new ArrayList<>();
-        ListModel<BoardCheckboxListItem> model = getModel();
-
-        for (int i = 0; i < model.getSize(); i++) {
-            BoardCheckboxListItem item = model.getElementAt(i);
-            if (item.isSelected()) {
-                result.add(item);
-            }
-        }
-
-        return result;
+        return ((ArrayListModel<BoardCheckboxListItem>) getModel()).stream()
+                .filter(BoardCheckboxListItem::isSelected)
+                .collect(Collectors.toList());
     }
 }

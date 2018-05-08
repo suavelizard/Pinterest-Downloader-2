@@ -7,17 +7,13 @@ import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.BoardsCheckboxList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItem;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.FormUtils;
-import nl.juraji.pinterestdownloader.util.workers.SwingWorkerDoneListener;
-import nl.juraji.pinterestdownloader.util.workers.Worker;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
 import nl.juraji.pinterestdownloader.workers.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.io.File;
@@ -55,9 +51,6 @@ public class RunBackupsPanel implements WindowPane {
     @Inject
     private BoardDao boardDao;
 
-    @Inject
-    private Instance<ProgressIndicator> indicatorInst;
-
     @PostConstruct
     private void init() {
         boardsList.updateBoards(boardDao.get(Board.class));
@@ -83,23 +76,22 @@ public class RunBackupsPanel implements WindowPane {
         fetchBoardsButton.addActionListener(evt -> {
             FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
-            FetchBoardsWorker scanner = new FetchBoardsWorker(indicatorInst.get(), settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class));
-            scanner.execute();
-            scanner.addPropertyChangeListener(new SwingWorkerDoneListener() {
+            FetchBoardsWorker scanner = new FetchBoardsWorker(settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class)) {
                 @Override
-                protected void onWorkerDone() {
-                    try {
-                        List<Board> boards = scanner.get();
-                        boardDao.save(boards);
-                        boardsList.updateBoards(boards, true);
-                        boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
-                    } catch (InterruptedException | ExecutionException e) {
-                        logger.log(Level.WARNING, "Error fetching boards", e);
-                    } finally {
-                        formLock.unlock();
-                    }
+                protected void process(List<Board> chunks) {
+                    boardDao.save(chunks);
+                    boardsList.updateBoards(chunks, true);
+                    boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
                 }
-            });
+
+                @Override
+                protected void done() {
+                    super.done();
+                    formLock.unlock();
+                }
+            };
+
+            scanner.execute();
         });
     }
 
@@ -144,7 +136,7 @@ public class RunBackupsPanel implements WindowPane {
                                     List<Pin> pins;
 
                                     if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
-                                        FetchPinsWorker scanner = new FetchPinsWorker(indicatorInst.get(), username, password, board, mode);
+                                        FetchPinsWorker scanner = new FetchPinsWorker(username, password, board, mode);
 
                                         scanner.execute();
                                         pins = scanner.get();
@@ -157,12 +149,12 @@ public class RunBackupsPanel implements WindowPane {
                                     }
 
                                     if (pins != null) {
-                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(indicatorInst.get(), board, imageStore);
+                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(board, imageStore);
                                         downloadWorker.execute();
                                         // Run get() in order to block wrapping worker thread
                                         downloadWorker.get();
 
-                                        PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(indicatorInst.get(), pins);
+                                        PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(pins);
                                         imageTypeCheckWorker.execute();
                                         // Run get() in order to block wrapping worker thread
                                         imageTypeCheckWorker.get();
@@ -212,17 +204,20 @@ public class RunBackupsPanel implements WindowPane {
             if (choice == JOptionPane.YES_OPTION) {
                 if (selectedItems.size() > 0) {
                     FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-                    Worker<Void> worker = new DeleteBoardsWorker(indicatorInst.get(), selectedItems);
-                    worker.addPropertyChangeListener(new SwingWorkerDoneListener() {
-                        @Override
-                        protected void onWorkerDone() {
-                            selectedItems.iterator().forEachRemaining(item ->
-                                    boardDao.delete(item.getBoard()));
 
+                    DeleteBoardsWorker worker = new DeleteBoardsWorker(selectedItems) {
+                        @Override
+                        protected void process(List<Board> chunks) {
+                            chunks.forEach(boardDao::delete);
+                        }
+
+                        @Override
+                        protected void done() {
+                            super.done();
                             boardsList.updateBoards(boardDao.get(Board.class));
                             formLock.unlock();
                         }
-                    });
+                    };
 
                     worker.execute();
                 }

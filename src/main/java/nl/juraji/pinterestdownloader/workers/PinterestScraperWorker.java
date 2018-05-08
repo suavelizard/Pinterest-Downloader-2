@@ -5,8 +5,7 @@ import com.google.common.io.CharStreams;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import nl.juraji.pinterestdownloader.Container;
 import nl.juraji.pinterestdownloader.resources.ScraperData;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
-import nl.juraji.pinterestdownloader.util.workers.Worker;
+import nl.juraji.pinterestdownloader.util.workers.IndicatingWorker;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -30,15 +29,14 @@ import java.util.logging.Logger;
  * Created by Juraji on 26-4-2018.
  * Pinterest Downloader
  */
-public abstract class PinterestScraperWorker<T> extends Worker<T> {
+public abstract class PinterestScraperWorker<T, V> extends IndicatingWorker<T, V> {
     private static final AtomicReference<RemoteWebDriver> DRIVER_REFERENCE = new AtomicReference<>();
 
     private final String username;
     private final String password;
     private RemoteWebDriver driver;
 
-    public PinterestScraperWorker(ProgressIndicator indicator, String username, String password) {
-        super(indicator);
+    public PinterestScraperWorker(String username, String password) {
         this.username = username;
         this.password = password;
     }

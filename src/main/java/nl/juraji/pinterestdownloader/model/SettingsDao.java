@@ -1,7 +1,5 @@
 package nl.juraji.pinterestdownloader.model;
 
-import com.google.common.base.Strings;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
 import javax.inject.Singleton;

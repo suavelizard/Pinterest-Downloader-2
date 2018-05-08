@@ -8,7 +8,6 @@ import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsList;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetContentsListContextMenu;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.util.PinPreviewImageCache;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
@@ -17,7 +16,6 @@ import nl.juraji.pinterestdownloader.workers.DuplicateScanWorker;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.util.ArrayList;
@@ -38,9 +36,6 @@ public class DuplicateScannerPanel implements WindowPane {
 
     @Inject
     private BoardDao boardDao;
-
-    @Inject
-    private Instance<ProgressIndicator> indicatorInst;
 
     @PostConstruct
     private void init() {
@@ -105,6 +100,7 @@ public class DuplicateScannerPanel implements WindowPane {
                 FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
                 duplicateSetList.clear();
                 duplicateSetContentsList.clear();
+
                 WrappingWorker worker = new WrappingWorker() {
 
                     @Override
@@ -117,7 +113,12 @@ public class DuplicateScannerPanel implements WindowPane {
 
                         if (scanPerBoardCheckBox.isSelected()) {
                             boards.stream()
-                                    .map(board -> new DuplicateScanWorker(indicatorInst.get(), board, duplicateSetList))
+                                    .map(board -> new DuplicateScanWorker(board) {
+                                        @Override
+                                        protected void process(List<DuplicatePinSet> chunks) {
+                                            duplicateSetList.addSets(chunks);
+                                        }
+                                    })
                                     .forEach(workers::add);
                         } else {
                             Board allPinsBoard = new Board();
@@ -126,7 +127,12 @@ public class DuplicateScannerPanel implements WindowPane {
                                     .map(Board::getPins)
                                     .forEach(pins -> allPinsBoard.getPins().addAll(pins));
 
-                            workers.add(new DuplicateScanWorker(indicatorInst.get(), allPinsBoard, duplicateSetList));
+                            workers.add(new DuplicateScanWorker(allPinsBoard) {
+                                @Override
+                                protected void process(List<DuplicatePinSet> chunks) {
+                                    duplicateSetList.addSets(chunks);
+                                }
+                            });
                         }
 
                         for (DuplicateScanWorker worker : workers) {

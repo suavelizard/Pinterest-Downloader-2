@@ -4,7 +4,6 @@ import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.ScraperData;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
@@ -22,13 +21,13 @@ import java.util.stream.Collectors;
  * <p>
  * Fetches new* pins from the given board.
  */
-public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>> {
+public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>, Void> {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final Board board;
     private final FetchPinsWorkerMode mode;
 
-    public FetchPinsWorker(ProgressIndicator indicator, String username, String password, Board board, FetchPinsWorkerMode mode) {
-        super(indicator, username, password);
+    public FetchPinsWorker(String username, String password, Board board, FetchPinsWorkerMode mode) {
+        super(username, password);
         this.board = board;
         this.mode = mode;
     }

@@ -2,6 +2,7 @@ package nl.juraji.pinterestdownloader.model;
 
 import javax.persistence.*;
 import java.util.BitSet;
+import java.util.Objects;
 
 /**
  * Created by Juraji on 27-4-2018.
@@ -86,5 +87,18 @@ public class PinImageHash {
 
     public long getImageSizeBytes() {
         return imageSizeBytes;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PinImageHash imageHash = (PinImageHash) o;
+        return Objects.equals(getId(), imageHash.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getHash().hashCode();
     }
 }

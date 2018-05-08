@@ -3,11 +3,9 @@ package nl.juraji.pinterestdownloader.workers;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashComparator;
-import nl.juraji.pinterestdownloader.util.workers.PublishingWorker;
+import nl.juraji.pinterestdownloader.util.workers.IndicatingWorker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +15,13 @@ import java.util.stream.Collectors;
  * Created by Juraji on 2-5-2018.
  * pinterestdownloader
  */
-public class DuplicateScanWorker extends PublishingWorker<DuplicatePinSet> {
+public class DuplicateScanWorker extends IndicatingWorker<Void, DuplicatePinSet> {
 
     private final Board board;
-    private final DuplicatePinSetList duplicatePinSetList;
 
-    public DuplicateScanWorker(ProgressIndicator indicator, Board board, DuplicatePinSetList duplicatePinSetList) {
-        super(indicator);
+    public DuplicateScanWorker(Board board) {
+        super();
         this.board = board;
-        this.duplicatePinSetList = duplicatePinSetList;
     }
 
     @Override
@@ -38,26 +34,27 @@ public class DuplicateScanWorker extends PublishingWorker<DuplicatePinSet> {
         final PinHashComparator comparator = new PinHashComparator();
         final ArrayList<Pin> compareQueue = new ArrayList<>(pins);
 
-        pins.stream()
-                .peek(ign -> getIndicator().incrementProgressBar())
-                .forEach(parentPin -> {
-                    List<Pin> collect = compareQueue.stream()
-                            .filter(p -> !parentPin.equals(p))
-                            .filter(p -> comparator.compare(parentPin, p))
-                            .collect(Collectors.toList());
+        try {
+            pins.stream()
+                    .peek(ign -> getIndicator().incrementProgressBar())
+                    .forEach(parentPin -> {
+                        if (isCancelled()) {
+                            throw new CanceledException();
+                        }
+                        List<Pin> collect = compareQueue.stream()
+                                .filter(p -> !parentPin.equals(p))
+                                .filter(p -> comparator.compare(parentPin, p))
+                                .collect(Collectors.toList());
 
-                    if (collect.size() > 0) {
-                        compareQueue.remove(parentPin);
-                        collect.forEach(compareQueue::remove);
-                        publish(new DuplicatePinSet(board.getName(), parentPin, collect));
-                    }
-                });
+                        if (collect.size() > 0) {
+                            compareQueue.remove(parentPin);
+                            collect.forEach(compareQueue::remove);
+                            publish(new DuplicatePinSet(board.getName(), parentPin, collect));
+                        }
+                    });
+        } catch (CanceledException ignored) {
+        }
 
         return null;
-    }
-
-    @Override
-    public void process(List<DuplicatePinSet> chunks) {
-        duplicatePinSetList.addSets(chunks);
     }
 }

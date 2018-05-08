@@ -5,9 +5,8 @@ import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.model.PinImageHash;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashBuilder;
-import nl.juraji.pinterestdownloader.util.workers.Worker;
+import nl.juraji.pinterestdownloader.util.workers.IndicatingWorker;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,13 +22,12 @@ import java.util.stream.Collectors;
  * Created by Juraji on 27-4-2018.
  * Pinterest Downloader
  */
-public class PinsDownloadWorker extends Worker<Void> {
+public class PinsDownloadWorker extends IndicatingWorker<Void, Void> {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final Board board;
     private final File outputDirectory;
 
-    public PinsDownloadWorker(ProgressIndicator indicator, Board board, File outputDirectory) {
-        super(indicator);
+    public PinsDownloadWorker(Board board, File outputDirectory) {
         this.board = board;
         this.outputDirectory = new File(outputDirectory, getFileSystemSafeName(board.getName()));
     }

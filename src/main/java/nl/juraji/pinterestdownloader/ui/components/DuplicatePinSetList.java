@@ -4,7 +4,6 @@ import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 
 import javax.swing.*;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Created by Juraji on 2-5-2018.

@@ -20,7 +20,7 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_GRAY;
  */
 public final class PinHashBuilder {
     private static final int SAMPLE_SIZE = 100;
-    private static final int HASH_OUTPUT_SIZE = 9900;
+    private static final int HASH_OUTPUT_SIZE = SAMPLE_SIZE * 99;
 
     public PinImageHash build(Pin pin) throws IOException {
         BufferedImage image = ImageIO.read(pin.getFileOnDisk());

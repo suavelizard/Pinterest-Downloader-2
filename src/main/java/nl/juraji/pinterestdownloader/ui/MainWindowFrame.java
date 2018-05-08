@@ -2,17 +2,14 @@ package nl.juraji.pinterestdownloader.ui;
 
 import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
-import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.Icons;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
 import nl.juraji.pinterestdownloader.ui.panels.DuplicateScannerPanel;
 import nl.juraji.pinterestdownloader.ui.panels.RunBackupsPanel;
 import nl.juraji.pinterestdownloader.ui.panels.SettingsPanel;
 import nl.juraji.pinterestdownloader.ui.panels.WindowPane;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
-import nl.juraji.pinterestdownloader.util.workers.SwingWorkerDoneListener;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
@@ -27,7 +24,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,9 +46,6 @@ public class MainWindowFrame extends JFrame {
 
     @Inject
     private Logger logger;
-
-    @Inject
-    private SettingsDao settingsDao;
 
     @Inject
     private Instance<WindowPane> windowPanes;
@@ -123,23 +116,21 @@ public class MainWindowFrame extends JFrame {
 
     private void runLocalCacheIntegrityCheck() {
         BoardDao dao = CDI.current().select(BoardDao.class).get();
-        ProgressIndicator indicator = CDI.current().select(ProgressIndicator.class).get();
 
         FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(indicator, dao.get(Pin.class));
-        worker.execute();
-        worker.addPropertyChangeListener(new SwingWorkerDoneListener() {
+        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(dao.get(Pin.class)) {
             @Override
-            protected void onWorkerDone() {
-                try {
-                    List<Pin> updatedPins = worker.get();
-                    dao.save(updatedPins);
-                } catch (InterruptedException | ExecutionException e) {
-//                    logger.log(Level.SEVERE, "Error validation pins to file associations!", e);
-                } finally {
-                    formLock.unlock();
-                }
+            protected void process(List<Pin> chunks) {
+                dao.save(chunks);
             }
-        });
+
+            @Override
+            protected void done() {
+                super.done();
+                formLock.unlock();
+            }
+        };
+
+        worker.execute();
     }
 }

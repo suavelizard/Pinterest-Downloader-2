@@ -64,8 +64,8 @@ public abstract class Dao {
             session.getTransaction().begin();
             Object mergedEntity = session.merge(entity);
             session.delete(mergedEntity);
-            session.getTransaction().commit();
             session.flush();
+            session.getTransaction().commit();
         }
     }
 }

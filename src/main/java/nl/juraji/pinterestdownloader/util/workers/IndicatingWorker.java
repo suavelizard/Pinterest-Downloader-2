@@ -8,12 +8,13 @@ import javax.swing.*;
  * Created by Juraji on 30-4-2018.
  * Pinterest Downloader
  */
-public abstract class Worker<T> extends SwingWorker<T, Void> {
+public abstract class IndicatingWorker<T, V> extends SwingWorker<T, V> {
     private final ProgressIndicator indicator;
 
-    public Worker(ProgressIndicator indicator) {
-        this.indicator = indicator;
+    public IndicatingWorker() {
+        this.indicator = new ProgressIndicator();
         indicator.resetProgressBar();
+
     }
 
     @Override
@@ -28,5 +29,8 @@ public abstract class Worker<T> extends SwingWorker<T, Void> {
             indicator.setVisible(true);
         }
         return indicator;
+    }
+
+    public static class CanceledException extends RuntimeException{
     }
 }

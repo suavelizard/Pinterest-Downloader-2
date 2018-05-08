@@ -4,8 +4,7 @@ import com.google.common.base.Strings;
 import net.sf.jmimemagic.*;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.dialogs.ProgressIndicator;
-import nl.juraji.pinterestdownloader.util.workers.Worker;
+import nl.juraji.pinterestdownloader.util.workers.IndicatingWorker;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -15,12 +14,11 @@ import java.util.List;
  * Created by Juraji on 30-4-2018.
  * Pinterest Downloader
  */
-public class PinImageTypeCheckWorker extends Worker<Void> {
+public class PinImageTypeCheckWorker extends IndicatingWorker<Void, Void> {
 
     private final List<Pin> pins;
 
-    public PinImageTypeCheckWorker(ProgressIndicator indicator, List<Pin> pins) {
-        super(indicator);
+    public PinImageTypeCheckWorker(List<Pin> pins) {
         this.pins = pins;
     }
 

@@ -2,6 +2,7 @@ package nl.juraji.pinterestdownloader.model;
 
 import javax.persistence.*;
 import java.io.File;
+import java.util.Objects;
 
 /**
  * Created by Juraji on 23-4-2018.
@@ -101,8 +102,15 @@ public class Pin {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Pin
-                && ((Pin) obj).getId().equals(this.getId());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pin pin = (Pin) o;
+        return Objects.equals(getId(), pin.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getUrl());
     }
 }

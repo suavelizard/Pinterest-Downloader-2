@@ -1,6 +1,8 @@
 package nl.juraji.pinterestdownloader.ui.dialogs;
 
 import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.resources.Icons;
+import nl.juraji.pinterestdownloader.util.FormUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,12 +17,15 @@ public class ProgressIndicator extends JDialog {
     private JProgressBar progressBar;
     private JLabel progressLabel;
 
-    public ProgressIndicator(Frame owner) {
-        super(owner, I18n.get("ui.applicationName"));
+    public ProgressIndicator() {
+        super(getFrame(), I18n.get("ui.applicationName"));
 
+        setIconImage(Icons.getApplicationIcon());
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setContentPane(contentPane);
         pack();
 
+        FormUtils.moveToCenterOf(this, getOwner());
         progressBar.setMinimum(0);
         counter = new AtomicInteger();
     }
@@ -57,5 +62,9 @@ public class ProgressIndicator extends JDialog {
 
     private void updateLabel(int current) {
         progressLabel.setText(I18n.get("ui.progressBar.progressLabel", current, progressBar.getMaximum()));
+    }
+
+    private static Frame getFrame() {
+        return Frame.getFrames()[0];
     }
 }

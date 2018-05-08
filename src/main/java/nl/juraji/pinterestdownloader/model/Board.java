@@ -3,6 +3,7 @@ package nl.juraji.pinterestdownloader.model;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by Juraji on 22-4-2018.
@@ -55,5 +56,19 @@ public class Board {
         }
 
         return pins;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Board board = (Board) o;
+        return Objects.equals(getId(), board.getId()) ||
+                Objects.equals(getUrl(), board.getUrl());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUrl());
     }
 }
