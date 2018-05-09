@@ -22,6 +22,7 @@ public class ProgressIndicator extends JDialog {
 
         setIconImage(Icons.getApplicationIcon());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setAutoRequestFocus(false);
         setContentPane(contentPane);
         pack();
 
