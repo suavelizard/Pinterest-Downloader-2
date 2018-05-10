@@ -2,6 +2,8 @@ package nl.juraji.pinterestdownloader.ui.panels;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.BoardDao;
+import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.components.BoardsList;
 import nl.juraji.pinterestdownloader.ui.components.PinsList;
 import nl.juraji.pinterestdownloader.ui.components.PinsListContextMenu;
@@ -17,7 +19,7 @@ import java.util.stream.Collectors;
  * Created by Juraji on 8-5-2018.
  * Pinterest Downloader
  */
-public class BoardViewPanel implements WindowPane {
+public class BoardViewPanel implements TabWindow {
     private JPanel contentPane;
     private BoardsList boardsList;
     private PinsList boardContentList;
@@ -25,10 +27,9 @@ public class BoardViewPanel implements WindowPane {
     @Inject
     private BoardDao boardDao;
 
-    @PostConstruct
-    private void init() {
-        setupBoardsList();
-        setupBoardContentsList();
+    @Override
+    public String getTitle() {
+        return I18n.get("ui.viewBoards.tabTitle");
     }
 
     @Override
@@ -36,15 +37,8 @@ public class BoardViewPanel implements WindowPane {
         return contentPane;
     }
 
-    private void setupBoardsList() {
-        final List<Board> boards = boardDao.get(Board.class).stream()
-                .sorted(Comparator.comparing(Board::getName))
-                .collect(Collectors.toList());
-
-        boardsList.setBoards(boards);
-    }
-
-    private void setupBoardContentsList() {
+    @PostConstruct
+    private void init() {
         boardsList.addListSelectionListener(e -> {
             final Board board = boardsList.getSelectedValue();
             if (board != null) {
@@ -58,4 +52,18 @@ public class BoardViewPanel implements WindowPane {
         boardContentList.setPopupMenu(new PinsListContextMenu(boardContentList, boardDao));
     }
 
+    @Override
+    public void activate() {
+        final List<Board> boards = boardDao.get(Board.class).stream()
+                .sorted(Comparator.comparing(Board::getName))
+                .collect(Collectors.toList());
+
+        boardsList.setBoards(boards);
+    }
+
+    @Override
+    public void deactivate() {
+        boardsList.clear();
+        boardContentList.clear();
+    }
 }

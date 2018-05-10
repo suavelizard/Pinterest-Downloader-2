@@ -4,6 +4,7 @@ import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.Icons;
+import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.panels.*;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
@@ -20,8 +21,9 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,27 +34,17 @@ import java.util.logging.Logger;
 @Default
 public class MainWindowFrame extends JFrame {
     private JPanel contentPane;
-    private JPanel windowContainer;
-
-    private JButton settingsButton;
-    private JButton runBackupsButton;
-    private JButton duplicateScannerButton;
-    private JButton browseBoardsButton;
     private JLabel devInfoLabel;
-
-    private AtomicReference<WindowPane> currentPaneRef;
+    private JTabbedPane tabContainer;
 
     @Inject
     private Logger logger;
 
     @Inject
-    private Instance<WindowPane> windowPanes;
+    private Instance<TabWindow> windowPanes;
 
     public MainWindowFrame() {
         super(I18n.get("ui.applicationName"));
-
-        currentPaneRef = new AtomicReference<>();
-
         setContentPane(contentPane);
         setIconImage(Icons.getApplicationIcon());
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -65,34 +57,29 @@ public class MainWindowFrame extends JFrame {
     private void init() {
         runLocalCacheIntegrityCheck();
         setupDevInfoLabel();
-        setupTabButtons();
+        setupTabContainer();
 
         setVisible(true);
-        windowContainer.setVisible(true);
-
-        switchPanel(windowPanes.select(SettingsPanel.class));
     }
 
-    private void setupTabButtons() {
-        settingsButton.addActionListener(e -> switchPanel(windowPanes.select(SettingsPanel.class)));
-        runBackupsButton.addActionListener(e -> switchPanel(windowPanes.select(RunBackupsPanel.class)));
-        duplicateScannerButton.addActionListener(e -> switchPanel(windowPanes.select(DuplicateScannerPanel.class)));
-        browseBoardsButton.addActionListener(e -> switchPanel(windowPanes.select(BoardViewPanel.class)));
-    }
+    private void setupTabContainer() {
+        final AtomicInteger prevActiveTab = new AtomicInteger(-1);
+        final List<TabWindow> tabWindows = new ArrayList<>();
 
-    private void switchPanel(Instance<? extends WindowPane> instance) {
-        WindowPane currentPane = currentPaneRef.get();
-        windowContainer.removeAll();
+        tabWindows.add(windowPanes.select(SettingsPanel.class).get());
+        tabWindows.add(windowPanes.select(RunBackupsPanel.class).get());
+        tabWindows.add(windowPanes.select(DuplicateScannerPanel.class).get());
+        tabWindows.add(windowPanes.select(BoardViewPanel.class).get());
 
-        if (currentPane != null) {
-            windowPanes.destroy(currentPane);
-        }
-
-        WindowPane windowPane = instance.get();
-        currentPaneRef.set(windowPane);
-
-        windowContainer.add(windowPane.getContentPane());
-        ((CardLayout) windowContainer.getLayout()).first(windowContainer);
+        tabWindows.forEach(tabWindow -> tabContainer.add(tabWindow.getTitle(), tabWindow.getContentPane()));
+        tabContainer.addChangeListener(e -> {
+            final int selectedIndex = tabContainer.getSelectedIndex();
+            final int prevIndex = prevActiveTab.getAndUpdate(i -> selectedIndex);
+            if (prevIndex > -1) {
+                tabWindows.get(prevIndex).deactivate();
+            }
+            tabWindows.get(selectedIndex).activate();
+        });
     }
 
     private void setupDevInfoLabel() {

@@ -3,17 +3,16 @@ package nl.juraji.pinterestdownloader.ui.panels;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
 import nl.juraji.pinterestdownloader.ui.components.PinsList;
 import nl.juraji.pinterestdownloader.ui.components.PinsListContextMenu;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
 import nl.juraji.pinterestdownloader.util.FormUtils;
-import nl.juraji.pinterestdownloader.util.PinPreviewImageCache;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
 import nl.juraji.pinterestdownloader.workers.DuplicateScanWorker;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.swing.*;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  * Pinterest Downloader
  */
 @Default
-public class DuplicateScannerPanel implements WindowPane {
+public class DuplicateScannerPanel implements TabWindow {
     private JPanel contentPane;
     private JButton startScanButton;
     private DuplicatePinSetList duplicateSetList;
@@ -42,14 +41,22 @@ public class DuplicateScannerPanel implements WindowPane {
         setupDuplicateSetContentsList();
     }
 
-    @PreDestroy
-    private void onDestroy() {
-        PinPreviewImageCache.destroy();
+    @Override
+    public String getTitle() {
+        return I18n.get("ui.duplicateScanner.tabTitle");
     }
 
     @Override
     public JPanel getContentPane() {
         return contentPane;
+    }
+
+    @Override
+    public void activate() {
+    }
+
+    @Override
+    public void deactivate() {
     }
 
     private void setupDuplicateSetContentsList() {

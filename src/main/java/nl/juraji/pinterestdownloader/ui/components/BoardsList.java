@@ -20,4 +20,8 @@ public class BoardsList extends JList<Board> {
         final DefaultListModel<Board> model = (DefaultListModel<Board>) getModel();
         boards.forEach(model::addElement);
     }
+
+    public void clear() {
+        ((DefaultListModel<Board>) getModel()).clear();
+    }
 }

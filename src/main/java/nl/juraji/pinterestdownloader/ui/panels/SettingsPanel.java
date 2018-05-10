@@ -1,6 +1,8 @@
 package nl.juraji.pinterestdownloader.ui.panels;
 
 import nl.juraji.pinterestdownloader.model.SettingsDao;
+import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.components.PlaceholderTextField;
 
 import javax.annotation.PostConstruct;
@@ -18,7 +20,7 @@ import java.util.logging.Logger;
  * Pinterest Downloader
  */
 @Default
-public class SettingsPanel implements WindowPane {
+public class SettingsPanel implements TabWindow {
 
     private JPanel contentPane;
 
@@ -39,8 +41,27 @@ public class SettingsPanel implements WindowPane {
     public SettingsPanel() throws HeadlessException {
     }
 
+    @Override
+    public String getTitle() {
+        return I18n.get("ui.settings.tabTitle");
+    }
+
     public JPanel getContentPane() {
         return contentPane;
+    }
+
+    @Override
+    public void activate() {
+        pinterestUsernameField.setText(settings.getPinterestUsername());
+        pinterestPasswordField.setText(settings.getPinterestPassword());
+
+        if (settings.getImageStore() != null) {
+            imageOutputLocationField.setText(settings.getImageStore().getAbsolutePath());
+        }
+    }
+
+    @Override
+    public void deactivate() {
     }
 
     @PostConstruct
@@ -49,13 +70,6 @@ public class SettingsPanel implements WindowPane {
     }
 
     private void setupSettingsForm() {
-        pinterestUsernameField.setText(settings.getPinterestUsername());
-        pinterestPasswordField.setText(settings.getPinterestPassword());
-
-        if (settings.getImageStore() != null) {
-            imageOutputLocationField.setText(settings.getImageStore().getAbsolutePath());
-        }
-
         browseButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

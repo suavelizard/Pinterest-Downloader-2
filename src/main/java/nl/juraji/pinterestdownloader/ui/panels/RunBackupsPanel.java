@@ -6,13 +6,13 @@ import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.BoardsCheckboxList;
+import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItem;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
 import nl.juraji.pinterestdownloader.workers.*;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.swing.*;
@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  * Pinterest Downloader
  */
 @Default
-public class RunBackupsPanel implements WindowPane {
+public class RunBackupsPanel implements TabWindow {
 
     private JPanel contentPane;
     private BoardsCheckboxList boardsList;
@@ -53,8 +53,6 @@ public class RunBackupsPanel implements WindowPane {
 
     @PostConstruct
     private void init() {
-        boardsList.updateBoards(boardDao.get(Board.class));
-        boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
         boardsList.setOnBoardUpdate(boardDao::save);
 
         setupFetchBoardsButton();
@@ -63,13 +61,25 @@ public class RunBackupsPanel implements WindowPane {
         setupSelectionButtons();
     }
 
-    @PreDestroy
-    private void preDestroy() {
-        PinterestScraperWorker.destroyDriver();
+    @Override
+    public String getTitle() {
+        return I18n.get("ui.runBackups.tabTitle");
     }
 
+    @Override
     public JPanel getContentPane() {
         return contentPane;
+    }
+
+    @Override
+    public void activate() {
+        boardsList.updateBoards(boardDao.get(Board.class));
+        boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
+    }
+
+    @Override
+    public void deactivate() {
+        PinterestScraperWorker.destroyDriver();
     }
 
     private void setupFetchBoardsButton() {
