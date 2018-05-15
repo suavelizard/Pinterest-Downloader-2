@@ -245,6 +245,7 @@ public class RunBackupsPanel implements TabWindow {
                         protected void done() {
                             super.done();
                             boardsList.updateBoards(boardDao.get(Board.class));
+                            PinterestScraperWorker.destroyDriver();
                             task.complete();
                             formLock.unlock();
                         }
