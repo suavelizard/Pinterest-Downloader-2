@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Created by Juraji on 25-4-2018.
@@ -81,14 +82,13 @@ public class RunBackupsPanel implements TabWindow {
 
     @Override
     public void deactivate() {
-        PinterestScraperWorker.destroyDriver();
     }
 
     private void setupFetchBoardsButton() {
         fetchBoardsButton.addActionListener(evt -> {
             FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
-            final Task task = TasksList.newTask();
+            final Task task = TasksList.newTask(I18n.get("ui.task.fetchBoards"));
             FetchBoardsWorker scanner = new FetchBoardsWorker(task, settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class)) {
                 @Override
                 protected void process(List<Board> chunks) {
@@ -128,7 +128,7 @@ public class RunBackupsPanel implements TabWindow {
 
                     WrappingWorker worker = new WrappingWorker() {
                         @Override
-                        protected Void doInBackground() {
+                        protected Void doInBackground() throws ExecutionException, InterruptedException {
                             String username = settingsDao.getPinterestUsername();
                             String password = settingsDao.getPinterestPassword();
                             File imageStore = settingsDao.getImageStore();
@@ -142,61 +142,75 @@ public class RunBackupsPanel implements TabWindow {
                                 mode = FetchPinsWorkerMode.FULL_UPDATE;
                             }
 
-                            for (BoardCheckboxListItem item : selectedItems) {
-                                Board board = item.getBoard();
-                                final Task task = TasksList.newTask();
+                            final List<WrappingWorker> workers = selectedItems.stream()
+                                    .map(item -> {
+                                        final Task task = TasksList.newTask(I18n.get("ui.task.backupBoard", item.getBoard().getName()));
+                                        return new WrappingWorker() {
+                                            @Override
+                                            protected Void doInBackground() {
+                                                Board board = item.getBoard();
 
-                                try {
-                                    List<Pin> pins;
-                                    if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
-                                        FetchPinsWorker scanner = new FetchPinsWorker(task, username, password, board, mode);
+                                                try {
+                                                    List<Pin> pins;
+                                                    if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
+                                                        FetchPinsWorker scanner = new FetchPinsWorker(task, username, password, board, mode);
 
-                                        scanner.execute();
-                                        pins = scanner.get();
+                                                        scanner.execute();
+                                                        pins = scanner.get();
 
-                                        if (pins != null) {
-                                            board.getPins().addAll(pins);
-                                        }
-                                    } else {
-                                        pins = board.getPins();
-                                    }
+                                                        if (pins != null) {
+                                                            board.getPins().addAll(pins);
+                                                        }
+                                                    } else {
+                                                        pins = board.getPins();
+                                                    }
 
-                                    if (pins != null) {
-                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(task, board, imageStore);
-                                        downloadWorker.execute();
-                                        // Run get() in order to block wrapping worker thread
-                                        downloadWorker.get();
+                                                    if (pins != null) {
+                                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(task, board, imageStore);
+                                                        downloadWorker.execute();
+                                                        // Run get() in order to block wrapping worker thread
+                                                        downloadWorker.get();
 
-                                        PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(task, pins);
-                                        imageTypeCheckWorker.execute();
-                                        // Run get() in order to block wrapping worker thread
-                                        imageTypeCheckWorker.get();
+                                                        PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(task, pins);
+                                                        imageTypeCheckWorker.execute();
+                                                        // Run get() in order to block wrapping worker thread
+                                                        imageTypeCheckWorker.get();
 
-                                        item.updatePinCounts();
-                                        boardDao.save(board);
-                                        publish();
-                                    }
-                                } catch (InterruptedException e) {
-                                    logger.log(Level.WARNING, "Fetching pins was interupted", e);
-                                    // Interruption means stop fetching boards
-                                    break;
-                                } catch (ExecutionException e) {
-                                    logger.log(Level.WARNING, "Error fetching pins for " + board.getName(), e);
-                                } finally {
-                                    task.complete();
-                                }
+                                                        item.updatePinCounts();
+                                                        boardDao.save(board);
+                                                        publish();
+                                                    }
+                                                } catch (InterruptedException e) {
+                                                    logger.log(Level.WARNING, "Fetching pins was interupted", e);
+                                                    // Interruption means stop fetching boards
+                                                } catch (ExecutionException e) {
+                                                    logger.log(Level.WARNING, "Error fetching pins for " + board.getName(), e);
+                                                } finally {
+                                                    task.complete();
+                                                }
+
+                                                return null;
+                                            }
+
+                                            @Override
+                                            protected void process(List<Void> chunks) {
+                                                boardsList.repaint();
+                                            }
+                                        };
+                                    })
+                                    .collect(Collectors.toList());
+
+                            for (WrappingWorker worker : workers) {
+                                worker.execute();
+                                worker.get();
                             }
 
                             return null;
                         }
 
                         @Override
-                        protected void process(List<Void> chunks) {
-                            boardsList.repaint();
-                        }
-
-                        @Override
                         protected void done() {
+                            PinterestScraperWorker.destroyDriver();
                             formLock.unlock();
                         }
                     };
@@ -220,7 +234,7 @@ public class RunBackupsPanel implements TabWindow {
                 if (selectedItems.size() > 0) {
                     FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
-                    final Task task = TasksList.newTask();
+                    final Task task = TasksList.newTask(I18n.get("ui.task.deleteBoards"));
                     DeleteBoardsWorker worker = new DeleteBoardsWorker(task, selectedItems) {
                         @Override
                         protected void process(List<Board> chunks) {

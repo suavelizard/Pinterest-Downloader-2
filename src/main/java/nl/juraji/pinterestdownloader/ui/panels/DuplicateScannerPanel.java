@@ -92,7 +92,7 @@ public class DuplicateScannerPanel implements TabWindow {
                         if (scanPerBoardCheckBox.isSelected()) {
                             boards.stream()
                                     .map(board -> {
-                                        final Task scantask = TasksList.newTask();
+                                        final Task scantask = TasksList.newTask(I18n.get("ui.task.duplicateScan", board.getName()));
                                         return new DuplicateScanWorker(scantask, board) {
                                             @Override
                                             protected void process(List<DuplicatePinSet> chunks) {
@@ -113,7 +113,7 @@ public class DuplicateScannerPanel implements TabWindow {
                                     .map(Board::getPins)
                                     .forEach(pins -> allPinsBoard.getPins().addAll(pins));
 
-                            final Task scantask = TasksList.newTask();
+                            final Task scantask = TasksList.newTask(I18n.get("ui.task.duplicateScan.allBoards"));
                             workers.add(new DuplicateScanWorker(scantask, allPinsBoard) {
                                 @Override
                                 protected void process(List<DuplicatePinSet> chunks) {

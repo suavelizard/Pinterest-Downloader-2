@@ -37,14 +37,14 @@ public class TasksList extends JList<Task> {
         model.remove(task);
     }
 
-    public static Task newTask() {
+    public static Task newTask(String taskName) {
         final TasksList tasksList = REF.get();
 
         if (tasksList == null) {
             throw new RuntimeException("No Taskslist instance available");
         }
 
-        Task task = new Task(tasksList);
+        Task task = new Task(tasksList, taskName);
         tasksList.addTask(task);
         return task;
     }

@@ -11,8 +11,14 @@ import java.awt.*;
  */
 public class TaskRenderer implements ListCellRenderer<Task> {
 
+    private final Color currentItemColor = new Color(183, 255, 189);
+
     @Override
     public Component getListCellRendererComponent(JList<? extends Task> list, Task value, int index, boolean isSelected, boolean cellHasFocus) {
+        if (index == 0) {
+            value.getContentPane().setBackground(currentItemColor);
+        }
+
         return value.getContentPane();
     }
 }

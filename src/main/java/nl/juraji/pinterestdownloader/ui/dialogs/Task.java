@@ -20,9 +20,10 @@ public class Task {
     private JLabel taskLabel;
     private JProgressBar progressBar;
     private JLabel progressLabel;
-    private boolean started;
 
-    public Task(TasksList tasksList) {
+    public Task(TasksList tasksList, String queuedName) {
+        setTask(I18n.get("ui.task.queuedTask", queuedName));
+
         this.tasksList = tasksList;
         counter = new AtomicInteger();
     }
@@ -33,7 +34,9 @@ public class Task {
 
     public void setTask(String task) {
         taskLabel.setText(task);
-        tasksList.repaint();
+        if (tasksList != null) {
+            tasksList.repaint();
+        }
     }
 
     public void setProgressMax(int max) {
@@ -42,17 +45,9 @@ public class Task {
         progressBar.setMaximum(max);
     }
 
-    public int getProgressMax() {
-        return progressBar.getMaximum();
-    }
-
     public void setProgress(int value) {
         counter.set(value);
         updateProgress();
-    }
-
-    public int getProgress() {
-        return counter.get();
     }
 
     public void incrementProgress() {

@@ -14,8 +14,10 @@ import nl.juraji.pinterestdownloader.ui.panels.SettingsPanel;
 import nl.juraji.pinterestdownloader.util.ArrayListModel;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
+import nl.juraji.pinterestdownloader.workers.PinterestScraperWorker;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
@@ -145,7 +147,7 @@ public class MainWindowFrame extends JFrame {
         BoardDao dao = CDI.current().select(BoardDao.class).get();
 
         FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-        final Task task = TasksList.newTask();
+        final Task task = TasksList.newTask(I18n.get("ui.task.checkIntegrity"));
         final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(task, dao.get(Pin.class)) {
             @Override
             protected void process(List<Pin> chunks) {
