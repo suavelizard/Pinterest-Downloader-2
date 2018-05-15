@@ -3,6 +3,7 @@ package nl.juraji.pinterestdownloader.workers;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.ScraperData;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
@@ -18,20 +19,17 @@ public class FetchBoardsWorker extends PinterestScraperWorker<Void, Board> {
 
     private final List<Board> currentBoards;
 
-    public FetchBoardsWorker(String username, String password, List<Board> currentBoards) {
-        super(username, password);
+    public FetchBoardsWorker(Task task, String username, String password, List<Board> currentBoards) {
+        super(task, username, password);
         this.currentBoards = currentBoards;
     }
 
     @Override
     protected Void doInBackground() throws Exception {
-        getIndicator().setTask(I18n.get("worker.fetchBoardsWorker.taskName"));
-        getIndicator().setVisible(true);
-
-        getIndicator().setAction(I18n.get("worker.common.loggingIn"));
+        getTask().setTask(I18n.get("worker.common.loggingIn"));
         login();
 
-        getIndicator().setAction(I18n.get("worker.fetchBoardsWorker.gettingBoards"));
+        getTask().setTask(I18n.get("worker.fetchBoardsWorker.gettingBoards"));
         goToProfile();
         scrollDown(3);
 
@@ -39,11 +37,11 @@ public class FetchBoardsWorker extends PinterestScraperWorker<Void, Board> {
         List<WebElement> boardWrappers = boardsFeed.findElements(ScraperData.by("xpath.profileBoards.feed.Items"));
 
         if (boardWrappers != null) {
-            getIndicator().setAction(I18n.get("worker.fetchBoardsWorker.processingBoards"));
-            getIndicator().setProgressBarMax(boardWrappers.size());
+            getTask().setTask(I18n.get("worker.fetchBoardsWorker.processingBoards"));
+            getTask().setProgressMax(boardWrappers.size());
 
             boardWrappers.stream()
-                    .peek(board -> getIndicator().incrementProgressBar())
+                    .peek(board -> getTask().incrementProgress())
                     .map(this::mapElementToBoard)
                     .filter(Objects::nonNull)
                     .filter(board -> currentBoards.stream()

@@ -5,7 +5,13 @@ import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.Icons;
 import nl.juraji.pinterestdownloader.ui.components.TabWindow;
-import nl.juraji.pinterestdownloader.ui.panels.*;
+import nl.juraji.pinterestdownloader.ui.components.TasksList;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
+import nl.juraji.pinterestdownloader.ui.panels.BoardViewPanel;
+import nl.juraji.pinterestdownloader.ui.panels.DuplicateScannerPanel;
+import nl.juraji.pinterestdownloader.ui.panels.RunBackupsPanel;
+import nl.juraji.pinterestdownloader.ui.panels.SettingsPanel;
+import nl.juraji.pinterestdownloader.util.ArrayListModel;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
 
@@ -14,7 +20,10 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.swing.*;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,10 +41,14 @@ import java.util.logging.Logger;
  * Pinterest Downloader
  */
 @Default
+@Singleton
 public class MainWindowFrame extends JFrame {
     private JPanel contentPane;
     private JLabel devInfoLabel;
     private JTabbedPane tabContainer;
+    private TasksList tasksList;
+    private JProgressBar allTasksProgress;
+    private JPanel tasksPane;
 
     @Inject
     private Logger logger;
@@ -55,6 +68,32 @@ public class MainWindowFrame extends JFrame {
 
     @PostConstruct
     private void init() {
+        tasksList.addListDataListener(new ListDataListener() {
+            private final ArrayListModel<Task> model = (ArrayListModel<Task>) tasksList.getModel();
+
+            @Override
+            public void intervalAdded(ListDataEvent e) {
+                tasksPane.setVisible(true);
+                allTasksProgress.setMaximum(model.getSize());
+            }
+
+            @Override
+            public void intervalRemoved(ListDataEvent e) {
+                final int c = (e.getIndex1() - e.getIndex0()) + 1;
+                if ((model.size() - c) > 0) {
+                    allTasksProgress.setValue(allTasksProgress.getValue() + c);
+                } else {
+                    allTasksProgress.setValue(0);
+                    allTasksProgress.setMaximum(0);
+                    tasksPane.setVisible(false);
+                }
+            }
+
+            @Override
+            public void contentsChanged(ListDataEvent e) {
+            }
+        });
+
         runLocalCacheIntegrityCheck();
         setupDevInfoLabel();
         setupTabContainer();
@@ -80,6 +119,8 @@ public class MainWindowFrame extends JFrame {
             }
             tabWindows.get(selectedIndex).activate();
         });
+
+        tabWindows.get(0).activate();
     }
 
     private void setupDevInfoLabel() {
@@ -104,7 +145,8 @@ public class MainWindowFrame extends JFrame {
         BoardDao dao = CDI.current().select(BoardDao.class).get();
 
         FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(dao.get(Pin.class)) {
+        final Task task = TasksList.newTask();
+        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(task, dao.get(Pin.class)) {
             @Override
             protected void process(List<Pin> chunks) {
                 dao.save(chunks);
@@ -113,6 +155,7 @@ public class MainWindowFrame extends JFrame {
             @Override
             protected void done() {
                 super.done();
+                task.complete();
                 formLock.unlock();
             }
         };

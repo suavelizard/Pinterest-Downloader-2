@@ -4,7 +4,8 @@ import com.google.common.base.Strings;
 import net.sf.jmimemagic.*;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.util.workers.IndicatingWorker;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
+import nl.juraji.pinterestdownloader.util.workers.WorkerWithTask;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -14,23 +15,22 @@ import java.util.List;
  * Created by Juraji on 30-4-2018.
  * Pinterest Downloader
  */
-public class PinImageTypeCheckWorker extends IndicatingWorker<Void, Void> {
+public class PinImageTypeCheckWorker extends WorkerWithTask<Void, Void> {
 
     private final List<Pin> pins;
 
-    public PinImageTypeCheckWorker(List<Pin> pins) {
+    public PinImageTypeCheckWorker(Task task, List<Pin> pins) {
+        super(task);
         this.pins = pins;
     }
 
     @Override
     protected Void doInBackground() throws Exception {
-        getIndicator().setTask(I18n.get("worker.pinImageTypeCheckWorker.taskName"));
-        getIndicator().setAction(I18n.get("worker.pinImageTypeCheckWorker.checkingFiles"));
-        getIndicator().setProgressBarMax(pins.size());
-        getIndicator().setVisible(true);
+        getTask().setTask(I18n.get("worker.pinImageTypeCheckWorker.checkingFiles"));
+        getTask().setProgressMax(pins.size());
 
         for (Pin pin : pins) {
-            getIndicator().incrementProgressBar();
+            getTask().incrementProgress();
             File fileOnDisk = pin.getFileOnDisk();
 
             if (fileOnDisk != null) {

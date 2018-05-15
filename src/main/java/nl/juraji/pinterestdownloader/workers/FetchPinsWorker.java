@@ -4,6 +4,7 @@ import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.resources.ScraperData;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
@@ -26,21 +27,18 @@ public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>, Void> {
     private final Board board;
     private final FetchPinsWorkerMode mode;
 
-    public FetchPinsWorker(String username, String password, Board board, FetchPinsWorkerMode mode) {
-        super(username, password);
+    public FetchPinsWorker(Task task, String username, String password, Board board, FetchPinsWorkerMode mode) {
+        super(task, username, password);
         this.board = board;
         this.mode = mode;
     }
 
     @Override
     protected List<Pin> doInBackground() throws Exception {
-        getIndicator().setTask(I18n.get("worker.fetchPinsWorker.taskName", board.getName()));
-        getIndicator().setVisible(true);
-
-        getIndicator().setAction(I18n.get("worker.common.loggingIn"));
+        getTask().setTask(I18n.get("worker.common.loggingIn"));
         login();
 
-        getIndicator().setAction(I18n.get("worker.fetchPinsWorker.gettingPins"));
+        getTask().setTask(I18n.get("worker.fetchPinsWorker.taskName", board.getName()));
         navigate(board.getUrl());
 
         List<Pin> downloadedPins = board.getPins().stream()
@@ -67,11 +65,11 @@ public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>, Void> {
 
         AtomicInteger previousElCount = new AtomicInteger(0);
         AtomicInteger retryCounter = new AtomicInteger(1);
-        getIndicator().setProgressBarMax(pinsToFetchCount);
+        getTask().setProgressMax(pinsToFetchCount);
 
         do {
             elements = getElements(ScraperData.by("xpath.boardPins.pins.feed"));
-            getIndicator().setProgressBarValue(elements.size());
+            getTask().setProgress(elements.size());
             scrollDown();
 
             if (previousElCount.get() == elements.size()) {
@@ -89,12 +87,12 @@ public class FetchPinsWorker extends PinterestScraperWorker<List<Pin>, Void> {
             }
         } while (elements.size() < pinsToFetchCount);
 
-        getIndicator().resetProgressBar();
-        getIndicator().setAction(I18n.get("worker.fetchPinsWorker.processingPins"));
-        getIndicator().setProgressBarMax(elements.size());
+        getTask().reset();
+        getTask().setTask(I18n.get("worker.fetchPinsWorker.processingPins"));
+        getTask().setProgressMax(elements.size());
 
         elements.stream()
-                .peek(pin -> getIndicator().incrementProgressBar())
+                .peek(pin -> getTask().incrementProgress())
                 .map(this::mapElementToPin)
                 .filter(Objects::nonNull)
                 .filter(pin -> downloadedPins.stream().noneMatch(pin1 -> pin.getPinId().equals(pin1.getPinId())))

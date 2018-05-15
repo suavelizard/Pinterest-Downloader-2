@@ -3,11 +3,9 @@ package nl.juraji.pinterestdownloader.ui.panels;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.components.TabWindow;
-import nl.juraji.pinterestdownloader.ui.components.DuplicatePinSetList;
-import nl.juraji.pinterestdownloader.ui.components.PinsList;
-import nl.juraji.pinterestdownloader.ui.components.PinsListContextMenu;
+import nl.juraji.pinterestdownloader.ui.components.*;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
 import nl.juraji.pinterestdownloader.workers.DuplicateScanWorker;
@@ -93,11 +91,19 @@ public class DuplicateScannerPanel implements TabWindow {
 
                         if (scanPerBoardCheckBox.isSelected()) {
                             boards.stream()
-                                    .map(board -> new DuplicateScanWorker(board) {
-                                        @Override
-                                        protected void process(List<DuplicatePinSet> chunks) {
-                                            duplicateSetList.addSets(chunks);
-                                        }
+                                    .map(board -> {
+                                        final Task scantask = TasksList.newTask();
+                                        return new DuplicateScanWorker(scantask, board) {
+                                            @Override
+                                            protected void process(List<DuplicatePinSet> chunks) {
+                                                duplicateSetList.addSets(chunks);
+                                            }
+
+                                            @Override
+                                            protected void done() {
+                                                scantask.complete();
+                                            }
+                                        };
                                     })
                                     .forEach(workers::add);
                         } else {
@@ -107,10 +113,16 @@ public class DuplicateScannerPanel implements TabWindow {
                                     .map(Board::getPins)
                                     .forEach(pins -> allPinsBoard.getPins().addAll(pins));
 
-                            workers.add(new DuplicateScanWorker(allPinsBoard) {
+                            final Task scantask = TasksList.newTask();
+                            workers.add(new DuplicateScanWorker(scantask, allPinsBoard) {
                                 @Override
                                 protected void process(List<DuplicatePinSet> chunks) {
                                     duplicateSetList.addSets(chunks);
+                                }
+
+                                @Override
+                                protected void done() {
+                                    scantask.complete();
                                 }
                             });
                         }

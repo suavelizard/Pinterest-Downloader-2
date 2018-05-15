@@ -5,8 +5,9 @@ import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.model.PinImageHash;
 import nl.juraji.pinterestdownloader.resources.I18n;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import nl.juraji.pinterestdownloader.util.hashes.PinHashBuilder;
-import nl.juraji.pinterestdownloader.util.workers.IndicatingWorker;
+import nl.juraji.pinterestdownloader.util.workers.WorkerWithTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,12 +23,13 @@ import java.util.stream.Collectors;
  * Created by Juraji on 27-4-2018.
  * Pinterest Downloader
  */
-public class PinsDownloadWorker extends IndicatingWorker<Void, Void> {
+public class PinsDownloadWorker extends WorkerWithTask<Void, Void> {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final Board board;
     private final File outputDirectory;
 
-    public PinsDownloadWorker(Board board, File outputDirectory) {
+    public PinsDownloadWorker(Task task, Board board, File outputDirectory) {
+        super(task);
         this.board = board;
         this.outputDirectory = new File(outputDirectory, getFileSystemSafeName(board.getName()));
     }
@@ -40,30 +42,27 @@ public class PinsDownloadWorker extends IndicatingWorker<Void, Void> {
 
         List<Pin> pins = board.getPins();
 
-        getIndicator().setTask(I18n.get("worker.pinsDownloadWorker.taskName", board.getName()));
-        getIndicator().setVisible(true);
-
         List<Pin> pinsToDownload = pins.stream()
                 .filter(pin -> pin.getOriginalUrl() != null && pin.getFileOnDisk() == null)
                 .collect(Collectors.toList());
 
-        getIndicator().setAction(I18n.get("worker.pinsDownloadWorker.downloadingPins", pinsToDownload.size()));
-        getIndicator().setProgressBarMax(pinsToDownload.size());
+        getTask().setTask(I18n.get("worker.pinsDownloadWorker.downloadingPins", pinsToDownload.size()));
+        getTask().setProgressMax(pinsToDownload.size());
         pinsToDownload.stream()
                 .parallel()
-                .peek(pin -> getIndicator().incrementProgressBar())
+                .peek(pin -> getTask().incrementProgress())
                 .forEach(this::downloadPin);
 
         List<Pin> pinsToHash = pins.stream()
                 .filter(pin -> pin.getImageHash() == null && pin.getFileOnDisk() != null)
                 .collect(Collectors.toList());
 
-        getIndicator().resetProgressBar();
-        getIndicator().setAction(I18n.get("worker.pinsDownloadWorker.buildingHashes", pinsToHash.size()));
-        getIndicator().setProgressBarMax(pinsToHash.size());
+        getTask().reset();
+        getTask().setTask(I18n.get("worker.pinsDownloadWorker.buildingHashes", pinsToHash.size()));
+        getTask().setProgressMax(pinsToHash.size());
         pinsToHash.stream()
                 .parallel()
-                .peek(pin -> getIndicator().incrementProgressBar())
+                .peek(pin -> getTask().incrementProgress())
                 .filter(pin -> pin.getFileOnDisk() != null)
                 .forEach(this::buildAndSetPinImageHash);
 

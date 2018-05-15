@@ -7,7 +7,9 @@ import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.BoardsCheckboxList;
 import nl.juraji.pinterestdownloader.ui.components.TabWindow;
+import nl.juraji.pinterestdownloader.ui.components.TasksList;
 import nl.juraji.pinterestdownloader.ui.components.renderers.BoardCheckboxListItem;
+import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
 import nl.juraji.pinterestdownloader.workers.*;
@@ -86,7 +88,8 @@ public class RunBackupsPanel implements TabWindow {
         fetchBoardsButton.addActionListener(evt -> {
             FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
-            FetchBoardsWorker scanner = new FetchBoardsWorker(settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class)) {
+            final Task task = TasksList.newTask();
+            FetchBoardsWorker scanner = new FetchBoardsWorker(task, settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class)) {
                 @Override
                 protected void process(List<Board> chunks) {
                     boardDao.save(chunks);
@@ -97,6 +100,7 @@ public class RunBackupsPanel implements TabWindow {
                 @Override
                 protected void done() {
                     super.done();
+                    task.complete();
                     formLock.unlock();
                 }
             };
@@ -140,13 +144,12 @@ public class RunBackupsPanel implements TabWindow {
 
                             for (BoardCheckboxListItem item : selectedItems) {
                                 Board board = item.getBoard();
-
+                                final Task task = TasksList.newTask();
 
                                 try {
                                     List<Pin> pins;
-
                                     if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
-                                        FetchPinsWorker scanner = new FetchPinsWorker(username, password, board, mode);
+                                        FetchPinsWorker scanner = new FetchPinsWorker(task, username, password, board, mode);
 
                                         scanner.execute();
                                         pins = scanner.get();
@@ -159,12 +162,12 @@ public class RunBackupsPanel implements TabWindow {
                                     }
 
                                     if (pins != null) {
-                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(board, imageStore);
+                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(task, board, imageStore);
                                         downloadWorker.execute();
                                         // Run get() in order to block wrapping worker thread
                                         downloadWorker.get();
 
-                                        PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(pins);
+                                        PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(task, pins);
                                         imageTypeCheckWorker.execute();
                                         // Run get() in order to block wrapping worker thread
                                         imageTypeCheckWorker.get();
@@ -179,6 +182,8 @@ public class RunBackupsPanel implements TabWindow {
                                     break;
                                 } catch (ExecutionException e) {
                                     logger.log(Level.WARNING, "Error fetching pins for " + board.getName(), e);
+                                } finally {
+                                    task.complete();
                                 }
                             }
 
@@ -215,7 +220,8 @@ public class RunBackupsPanel implements TabWindow {
                 if (selectedItems.size() > 0) {
                     FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
-                    DeleteBoardsWorker worker = new DeleteBoardsWorker(selectedItems) {
+                    final Task task = TasksList.newTask();
+                    DeleteBoardsWorker worker = new DeleteBoardsWorker(task, selectedItems) {
                         @Override
                         protected void process(List<Board> chunks) {
                             chunks.forEach(boardDao::delete);
@@ -225,6 +231,7 @@ public class RunBackupsPanel implements TabWindow {
                         protected void done() {
                             super.done();
                             boardsList.updateBoards(boardDao.get(Board.class));
+                            task.complete();
                             formLock.unlock();
                         }
                     };
