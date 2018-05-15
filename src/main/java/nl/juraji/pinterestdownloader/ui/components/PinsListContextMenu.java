@@ -63,7 +63,12 @@ public class PinsListContextMenu extends JPopupMenu {
             if (choice == JOptionPane.YES_OPTION) {
                 boolean deleted = false;
                 try {
-                    deleted = pin.getFileOnDisk().delete();
+                    if (pin.getFileOnDisk() != null && pin.getFileOnDisk().exists()){
+                        deleted = pin.getFileOnDisk().delete();
+                    } else {
+                        // Pin was already deleted or missing in the first place
+                        deleted = true;
+                    }
                 } catch (Exception ignored) {
                 }
 
