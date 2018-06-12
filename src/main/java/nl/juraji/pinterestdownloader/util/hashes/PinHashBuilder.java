@@ -23,25 +23,29 @@ public final class PinHashBuilder {
     private static final int HASH_OUTPUT_SIZE = SAMPLE_SIZE * 99;
 
     public PinImageHash build(Pin pin) throws IOException {
-        BufferedImage image = ImageIO.read(pin.getFileOnDisk());
-        long qualityRating = calculateQualityRating(image, pin.getFileOnDisk());
+        try {
+            BufferedImage image = ImageIO.read(pin.getFileOnDisk());
+            long qualityRating = calculateQualityRating(image, pin.getFileOnDisk());
 
-        BufferedImage resizeImage = resizeAndGrayScale(image);
-        image.flush();
+            BufferedImage resizeImage = resizeAndGrayScale(image);
+            image.flush();
 
-        BitSet hashBitSet = new BitSet(HASH_OUTPUT_SIZE);
-        int averageRGB = generateHash(resizeImage, hashBitSet);
-        resizeImage.flush();
+            BitSet hashBitSet = new BitSet(HASH_OUTPUT_SIZE);
+            int averageRGB = generateHash(resizeImage, hashBitSet);
+            resizeImage.flush();
 
-        PinImageHash hash = new PinImageHash();
-        hash.setContrast(Contrast.forRGB(averageRGB));
-        hash.setHash(hashBitSet);
-        hash.setQualityRating(qualityRating);
-        hash.setImageWidth(image.getWidth());
-        hash.setImageHeight(image.getHeight());
-        hash.setImageSizeBytes(pin.getFileOnDisk().length());
+            PinImageHash hash = new PinImageHash();
+            hash.setContrast(Contrast.forRGB(averageRGB));
+            hash.setHash(hashBitSet);
+            hash.setQualityRating(qualityRating);
+            hash.setImageWidth(image.getWidth());
+            hash.setImageHeight(image.getHeight());
+            hash.setImageSizeBytes(pin.getFileOnDisk().length());
 
-        return hash;
+            return hash;
+        } catch (Throwable e) {
+            throw new IOException("Image load failed: " + pin.getFileOnDisk().getAbsolutePath(), e);
+        }
     }
 
     private long calculateQualityRating(BufferedImage image, File originalFile) {

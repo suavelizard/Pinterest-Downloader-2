@@ -200,10 +200,13 @@ public class RunBackupsPanel implements TabWindow {
                                                     }
 
                                                     if (pins != null) {
-                                                        PinsDownloadWorker downloadWorker = new PinsDownloadWorker(task, board, imageStore);
-                                                        downloadWorker.execute();
-                                                        // Run get() in order to block wrapping worker thread
-                                                        downloadWorker.get();
+
+                                                        if (!board.isLocalFolder()) {
+                                                            PinsDownloadWorker downloadWorker = new PinsDownloadWorker(task, board, imageStore);
+                                                            downloadWorker.execute();
+                                                            // Run get() in order to block wrapping worker thread
+                                                            downloadWorker.get();
+                                                        }
 
                                                         PinImageTypeCheckWorker imageTypeCheckWorker = new PinImageTypeCheckWorker(task, pins);
                                                         imageTypeCheckWorker.execute();
