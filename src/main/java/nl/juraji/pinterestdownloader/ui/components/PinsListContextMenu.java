@@ -43,7 +43,7 @@ public class PinsListContextMenu extends JPopupMenu {
     @SuppressWarnings("unused")
     private void browseAction(ActionEvent event) {
         final Pin pin = owner.getSelectedValue();
-        if (pin != null && Desktop.isDesktopSupported()) {
+        if (pin != null && pin.getOriginalUrl() != null && Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(new URI(pin.getUrl()));
             } catch (IOException | URISyntaxException e) {
@@ -63,7 +63,7 @@ public class PinsListContextMenu extends JPopupMenu {
             if (choice == JOptionPane.YES_OPTION) {
                 boolean deleted = false;
                 try {
-                    if (pin.getFileOnDisk() != null && pin.getFileOnDisk().exists()){
+                    if (pin.getFileOnDisk() != null && pin.getFileOnDisk().exists()) {
                         deleted = pin.getFileOnDisk().delete();
                     } else {
                         // Pin was already deleted or missing in the first place

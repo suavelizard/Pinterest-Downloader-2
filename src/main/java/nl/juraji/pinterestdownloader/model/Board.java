@@ -26,6 +26,8 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<Pin> pins;
 
+    private boolean localFolder;
+
     public Long getId() {
         return id;
     }
@@ -56,6 +58,14 @@ public class Board {
         }
 
         return pins;
+    }
+
+    public boolean isLocalFolder() {
+        return localFolder;
+    }
+
+    public void setLocalFolder(boolean localFolder) {
+        this.localFolder = localFolder;
     }
 
     @Override

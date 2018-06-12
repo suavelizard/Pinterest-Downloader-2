@@ -19,6 +19,7 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -44,6 +45,7 @@ public class RunBackupsPanel implements TabWindow {
     private JButton selectIncompleteBoardsButton;
     private JCheckBox incrementalBackupCheckBox;
     private JCheckBox downloadMissingPinsCheckBox;
+    private JButton addLocalFolderButton;
 
     @Inject
     private Logger logger;
@@ -59,6 +61,7 @@ public class RunBackupsPanel implements TabWindow {
         boardsList.setOnBoardUpdate(boardDao::save);
 
         setupFetchBoardsButton();
+        setupAddLocalFolderButton();
         setupBackupBoardsButton();
         setupDeleteBoardsButton();
         setupSelectionButtons();
@@ -102,10 +105,31 @@ public class RunBackupsPanel implements TabWindow {
                     super.done();
                     task.complete();
                     formLock.unlock();
+                    PinterestScraperWorker.destroyDriver();
                 }
             };
 
             scanner.execute();
+        });
+    }
+
+    private void setupAddLocalFolderButton() {
+        addLocalFolderButton.addActionListener(evt -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            fileChooser.setMultiSelectionEnabled(false);
+
+            int result = fileChooser.showOpenDialog(addLocalFolderButton);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                Board localBoard = new Board();
+                localBoard.setLocalFolder(true);
+                localBoard.setName(selectedFile.getName());
+                localBoard.setUrl(selectedFile.getAbsolutePath());
+
+                boardDao.save(localBoard);
+                boardsList.updateBoards(Collections.singletonList(localBoard), true);
+            }
         });
     }
 
@@ -152,7 +176,17 @@ public class RunBackupsPanel implements TabWindow {
 
                                                 try {
                                                     List<Pin> pins;
-                                                    if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
+
+                                                    if (board.isLocalFolder()) {
+                                                        LocalFolderScanWorker localFolderScanWorker = new LocalFolderScanWorker(task, board);
+
+                                                        localFolderScanWorker.execute();
+                                                        pins = localFolderScanWorker.get();
+
+                                                        if (pins != null) {
+                                                            board.getPins().addAll(pins);
+                                                        }
+                                                    } else if (!FetchPinsWorkerMode.DOWNLOAD_ONLY.equals(mode)) {
                                                         FetchPinsWorker scanner = new FetchPinsWorker(task, username, password, board, mode);
 
                                                         scanner.execute();
@@ -237,26 +271,11 @@ public class RunBackupsPanel implements TabWindow {
 
             if (choice == JOptionPane.YES_OPTION) {
                 if (selectedItems.size() > 0) {
-                    FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
+                    selectedItems.stream()
+                            .map(BoardCheckboxListItem::getBoard)
+                            .forEach(boardDao::delete);
 
-                    final Task task = TasksList.newTask(I18n.get("ui.task.deleteBoards"));
-                    DeleteBoardsWorker worker = new DeleteBoardsWorker(task, selectedItems) {
-                        @Override
-                        protected void process(List<Board> chunks) {
-                            chunks.forEach(boardDao::delete);
-                        }
-
-                        @Override
-                        protected void done() {
-                            super.done();
-                            boardsList.updateBoards(boardDao.get(Board.class));
-                            PinterestScraperWorker.destroyDriver();
-                            task.complete();
-                            formLock.unlock();
-                        }
-                    };
-
-                    worker.execute();
+                    boardsList.updateBoards(boardDao.get(Board.class));
                 }
             }
         });

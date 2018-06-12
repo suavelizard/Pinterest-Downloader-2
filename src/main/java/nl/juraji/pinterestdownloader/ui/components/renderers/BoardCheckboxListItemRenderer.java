@@ -4,6 +4,7 @@ import nl.juraji.pinterestdownloader.resources.I18n;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * Created by Juraji on 25-4-2018.
@@ -19,23 +20,32 @@ public class BoardCheckboxListItemRenderer extends JCheckBox implements ListCell
         setBackground(list.getBackground());
         setSelected(value.isSelected());
 
+        java.util.List<String> statusses = new ArrayList<>();
+
+        if (value.getBoard().isLocalFolder()) {
+            statusses.add(I18n.get("ui.runBackups.boardsListItem.label.status.localFolder"));
+        }
+
         if (value.getAvailablePinCount() > 0) {
+            statusses.add(I18n.get("ui.runBackups.boardsListItem.label.status.pinCount", value.getAvailablePinCount()));
+
             if (value.getDownloadedPinCount() == value.getAvailablePinCount()) {
-                setText(I18n.get("ui.runBackups.boardsListItem.withPinsComplete",
-                        value.getBoard().getName(),
-                        value.getAvailablePinCount()
-                ));
+                statusses.add(I18n.get("ui.runBackups.boardsListItem.label.status.allDownloaded"));
             } else {
                 long missingPinsCount = value.getAvailablePinCount() - value.getDownloadedPinCount();
-                setText(I18n.get("ui.runBackups.boardsListItem.withPinsMissing",
-                        value.getBoard().getName(),
-                        value.getAvailablePinCount(),
-                        missingPinsCount
-                ));
+                statusses.add(I18n.get("ui.runBackups.boardsListItem.label.status.pinsMissing", missingPinsCount));
             }
         } else {
-            setText(I18n.get("ui.runBackups.boardsListItem.pinCountUnknown", value.getBoard().getName()));
+            statusses.add(I18n.get("ui.runBackups.boardsListItem.label.status.pinCountUnknown"));
         }
+
+        String statusText = statusses.stream()
+                .reduce((l, r) -> l + ", " + r)
+                .orElse("status unknown");
+
+        setText(I18n.get("ui.runBackups.boardsListItem.label",
+                value.getBoard().getName(),
+                statusText));
 
         return this;
     }
