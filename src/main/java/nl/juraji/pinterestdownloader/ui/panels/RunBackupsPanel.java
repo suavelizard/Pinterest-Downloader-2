@@ -176,6 +176,11 @@ public class RunBackupsPanel implements TabWindow {
                                                         // Run get() in order to block wrapping worker thread
                                                         imageTypeCheckWorker.get();
 
+                                                        PinHasherWorker pinHasherWorker = new PinHasherWorker(task, pins);
+                                                        pinHasherWorker.execute();
+                                                        // Run get() in order to block wrapping worker thread
+                                                        pinHasherWorker.get();
+
                                                         item.updatePinCounts();
                                                         boardDao.save(board);
                                                         publish();

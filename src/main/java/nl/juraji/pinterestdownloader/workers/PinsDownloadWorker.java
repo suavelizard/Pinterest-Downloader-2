@@ -3,10 +3,8 @@ package nl.juraji.pinterestdownloader.workers;
 import com.google.common.base.Strings;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
-import nl.juraji.pinterestdownloader.model.PinImageHash;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.dialogs.Task;
-import nl.juraji.pinterestdownloader.util.hashes.PinHashBuilder;
 import nl.juraji.pinterestdownloader.util.workers.WorkerWithTask;
 
 import java.io.File;
@@ -52,19 +50,6 @@ public class PinsDownloadWorker extends WorkerWithTask<Void, Void> {
                 .parallel()
                 .peek(pin -> getTask().incrementProgress())
                 .forEach(this::downloadPin);
-
-        List<Pin> pinsToHash = pins.stream()
-                .filter(pin -> pin.getImageHash() == null && pin.getFileOnDisk() != null)
-                .collect(Collectors.toList());
-
-        getTask().reset();
-        getTask().setTask(I18n.get("worker.pinsDownloadWorker.buildingHashes", pinsToHash.size()));
-        getTask().setProgressMax(pinsToHash.size());
-        pinsToHash.stream()
-                .parallel()
-                .peek(pin -> getTask().incrementProgress())
-                .filter(pin -> pin.getFileOnDisk() != null)
-                .forEach(this::buildAndSetPinImageHash);
 
         return null;
     }
@@ -121,16 +106,6 @@ public class PinsDownloadWorker extends WorkerWithTask<Void, Void> {
         }
 
         return targetFile;
-    }
-
-    private void buildAndSetPinImageHash(Pin pin) {
-        try {
-            PinImageHash hash = new PinHashBuilder().build(pin);
-            pin.setImageHash(hash);
-        } catch (IOException e) {
-            // If hashing fails there's nothing we can do, but the others should proceed
-            logger.log(Level.SEVERE, "Failed building hash for " + pin.getFileOnDisk().getAbsolutePath(), e);
-        }
     }
 
     private String getFileSystemSafeName(String name) {
