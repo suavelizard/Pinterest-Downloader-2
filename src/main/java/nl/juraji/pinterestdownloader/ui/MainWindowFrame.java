@@ -7,17 +7,14 @@ import nl.juraji.pinterestdownloader.resources.Icons;
 import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.components.TasksList;
 import nl.juraji.pinterestdownloader.ui.dialogs.Task;
-import nl.juraji.pinterestdownloader.ui.panels.BoardViewPanel;
 import nl.juraji.pinterestdownloader.ui.panels.DuplicateScannerPanel;
 import nl.juraji.pinterestdownloader.ui.panels.RunBackupsPanel;
 import nl.juraji.pinterestdownloader.ui.panels.SettingsPanel;
 import nl.juraji.pinterestdownloader.util.ArrayListModel;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
-import nl.juraji.pinterestdownloader.workers.PinterestScraperWorker;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
@@ -110,7 +107,6 @@ public class MainWindowFrame extends JFrame {
         tabWindows.add(windowPanes.select(SettingsPanel.class).get());
         tabWindows.add(windowPanes.select(RunBackupsPanel.class).get());
         tabWindows.add(windowPanes.select(DuplicateScannerPanel.class).get());
-        tabWindows.add(windowPanes.select(BoardViewPanel.class).get());
 
         tabWindows.forEach(tabWindow -> tabContainer.add(tabWindow.getTitle(), tabWindow.getContentPane()));
         tabContainer.addChangeListener(e -> {

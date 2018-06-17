@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="nl.juraji.pinterestdownloader.ui.panels.RunBackupsPanel">
-  <grid id="27dc6" binding="contentPane" layout-manager="GridLayoutManager" row-count="3" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="contentPane" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="5" left="5" bottom="5" right="5"/>
     <constraints>
       <xy x="20" y="20" width="640" height="480"/>
@@ -8,26 +8,17 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="1c111" class="javax.swing.JButton" binding="fetchBoardsButton">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text resource-bundle="data/i18n" key="ui.runBackups.fetchBoardsButton"/>
-          <toolTipText resource-bundle="data/i18n" key="ui.runBackups.fetchBoardsButton.tooltip"/>
-        </properties>
-      </component>
-      <grid id="40a62" layout-manager="GridLayoutManager" row-count="2" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="40a62" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
         <children>
           <scrollpane id="33f89">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="5" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -38,22 +29,6 @@
               </component>
             </children>
           </scrollpane>
-          <component id="4ef4c" class="javax.swing.JButton" binding="selectNoneBoardsButton">
-            <constraints>
-              <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text resource-bundle="data/i18n" key="ui.runBackups.selectNoneButton"/>
-            </properties>
-          </component>
-          <component id="10977" class="javax.swing.JButton" binding="selectAllBoardsButton">
-            <constraints>
-              <grid row="1" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text resource-bundle="data/i18n" key="ui.runBackups.selectAllButton"/>
-            </properties>
-          </component>
           <component id="7e0c3" class="javax.swing.JLabel" binding="boardCountLabel">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="4" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -62,66 +37,32 @@
               <text resource-bundle="data/i18n" key="ui.runBackups.boardCount.placeholder"/>
             </properties>
           </component>
-          <component id="6b9fa" class="javax.swing.JButton" binding="selectNewBoardsButton" default-binding="true">
+          <component id="46fb7" class="javax.swing.JButton" binding="selectionButton" default-binding="true">
             <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="data/i18n" key="ui.runBackups.selectNewBoardsButton"/>
+              <text resource-bundle="data/i18n" key="ui.runBackups.selectionButton"/>
             </properties>
           </component>
-          <component id="cd0b" class="javax.swing.JButton" binding="selectIncompleteBoardsButton">
+          <component id="7a2bf" class="javax.swing.JButton" binding="addButton" default-binding="true">
             <constraints>
               <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="data/i18n" key="ui.runBackups.selectIncompleteBoardsButton"/>
+              <text resource-bundle="data/i18n" key="ui.runBackups.addButton"/>
+            </properties>
+          </component>
+          <component id="b9396" class="javax.swing.JButton" binding="backupSelectedBoardsButton" default-binding="true">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="data/i18n" key="ui.runBackups.backupButton"/>
             </properties>
           </component>
         </children>
       </grid>
-      <component id="d3573" class="javax.swing.JButton" binding="deleteBoardsButton">
-        <constraints>
-          <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text resource-bundle="data/i18n" key="ui.runBackups.deleteBoardsButton"/>
-        </properties>
-      </component>
-      <component id="4b6c0" class="javax.swing.JButton" binding="backupBoardsButton">
-        <constraints>
-          <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text resource-bundle="data/i18n" key="ui.runBackups.backupBoardsButton"/>
-          <toolTipText resource-bundle="data/i18n" key="ui.runBackups.backupBoardsButton.tooltip"/>
-        </properties>
-      </component>
-      <component id="de7ba" class="javax.swing.JCheckBox" binding="incrementalBackupCheckBox">
-        <constraints>
-          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <selected value="true"/>
-          <text resource-bundle="data/i18n" key="ui.runBackups.backupBoards.incrementalBackupCheckBox"/>
-        </properties>
-      </component>
-      <component id="59c40" class="javax.swing.JCheckBox" binding="downloadMissingPinsCheckBox" default-binding="true">
-        <constraints>
-          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text resource-bundle="data/i18n" key="ui.runBackups.downloadOnlyCheckbox"/>
-        </properties>
-      </component>
-      <component id="e8844" class="javax.swing.JButton" binding="addLocalFolderButton" default-binding="true">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text resource-bundle="data/i18n" key="ui.runBackups.addLocalFolderButton"/>
-        </properties>
-      </component>
     </children>
   </grid>
 </form>

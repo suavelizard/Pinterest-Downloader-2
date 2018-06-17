@@ -2,8 +2,8 @@ package nl.juraji.pinterestdownloader.ui.panels;
 
 import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
-import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 import nl.juraji.pinterestdownloader.ui.components.PlaceholderTextField;
+import nl.juraji.pinterestdownloader.ui.components.TabWindow;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
@@ -11,8 +11,6 @@ import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -30,10 +28,6 @@ public class SettingsPanel implements TabWindow {
 
     private JButton settingsSaveButton;
     private JPasswordField pinterestPasswordField;
-    private JButton openOutputLocationButton;
-
-    @Inject
-    private Logger logger;
 
     @Inject
     private SettingsDao settings;
@@ -80,14 +74,6 @@ public class SettingsPanel implements TabWindow {
                 File selectedFile = fileChooser.getSelectedFile();
                 settings.setImageStore(selectedFile);
                 imageOutputLocationField.setText(selectedFile.getAbsolutePath());
-            }
-        });
-
-        openOutputLocationButton.addActionListener(e -> {
-            try {
-                Desktop.getDesktop().open(settings.getImageStore());
-            } catch (IOException e1) {
-                logger.log(Level.SEVERE, "Error opening image store", e);
             }
         });
 
