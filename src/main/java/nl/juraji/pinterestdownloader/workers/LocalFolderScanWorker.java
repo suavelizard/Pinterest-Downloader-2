@@ -36,7 +36,7 @@ public class LocalFolderScanWorker extends WorkerWithTask<List<Pin>, Void> {
         return files.stream()
                 .filter(file -> existingPins.stream()
                         .map(Pin::getFileOnDisk)
-                        .noneMatch(f -> f.getAbsolutePath().equals(file.getAbsolutePath())))
+                        .noneMatch(f -> f.getName().equals(file.getName())))
                 .map(this::mapFileToPin)
                 .collect(Collectors.toList());
     }
