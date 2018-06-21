@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.workers;
+package nl.juraji.pinterestdownloader.workers.scraping;
 
 /**
  * Created by Juraji on 6-5-2018.

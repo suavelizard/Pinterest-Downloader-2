@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.workers;
+package nl.juraji.pinterestdownloader.workers.scraping;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.resources.I18n;
@@ -7,6 +7,7 @@ import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -31,24 +32,28 @@ public class FetchBoardsWorker extends PinterestScraperWorker<Void, Board> {
 
         getTask().setTask(I18n.get("worker.fetchBoardsWorker.gettingBoards"));
         goToProfile();
-        scrollDown(3);
 
-        WebElement boardsFeed = getElement(ScraperData.by("class.profileBoards.feed"));
-        List<WebElement> boardWrappers = boardsFeed.findElements(ScraperData.by("xpath.profileBoards.feed.Items"));
+        final WebElement boardsFeed = getElement(ScraperData.by("class.profileBoards.feed"));
+        List<WebElement> boardWrappers;
+        List<WebElement> boardWrappersTemp = new ArrayList<>();
 
-        if (boardWrappers != null) {
-            getTask().setTask(I18n.get("worker.fetchBoardsWorker.processingBoards"));
-            getTask().setProgressMax(boardWrappers.size());
+        do {
+            boardWrappers = boardWrappersTemp;
+            scrollDown();
+            boardWrappersTemp = boardsFeed.findElements(ScraperData.by("xpath.profileBoards.feed.Items"));
+        } while (boardWrappersTemp.size() > boardWrappers.size());
 
-            boardWrappers.stream()
-                    .peek(board -> getTask().incrementProgress())
-                    .map(this::mapElementToBoard)
-                    .filter(Objects::nonNull)
-                    .filter(board -> currentBoards.stream()
-                            .noneMatch(targetBoard -> targetBoard.getUrl().equals(board.getUrl())))
-                    .sorted(Comparator.comparing(Board::getName))
-                    .forEach(this::publish);
-        }
+        getTask().setTask(I18n.get("worker.fetchBoardsWorker.processingBoards"));
+        getTask().setProgressMax(boardWrappers.size());
+
+        boardWrappers.stream()
+                .peek(board -> getTask().incrementProgress())
+                .map(this::mapElementToBoard)
+                .filter(Objects::nonNull)
+                .filter(board -> currentBoards.stream()
+                        .noneMatch(targetBoard -> targetBoard.getUrl().equals(board.getUrl())))
+                .sorted(Comparator.comparing(Board::getName))
+                .forEach(this::publish);
 
         return null;
     }

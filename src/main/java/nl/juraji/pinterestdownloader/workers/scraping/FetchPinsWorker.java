@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.workers;
+package nl.juraji.pinterestdownloader.workers.scraping;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;

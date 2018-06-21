@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.workers;
+package nl.juraji.pinterestdownloader.workers.scraping;
 
 import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
@@ -91,18 +91,12 @@ public abstract class PinterestScraperWorker<T, V> extends WorkerWithTask<T, V> 
     }
 
     protected void scrollDown() throws InterruptedException {
-        scrollDown(1);
-    }
-
-    protected void scrollDown(int times) throws InterruptedException {
         if (testDriverReady()) {
             throw new IllegalStateException("No website loaded, use login() first");
         }
 
-        for (int i = 0; i < times; i++) {
-            driver.executeScript(getScript("/js/window-scroll-down.js"));
-            Thread.sleep(1000);
-        }
+        driver.executeScript(getScript("/js/window-scroll-down.js"));
+        Thread.sleep(1000);
     }
 
     protected WebElement getElement(By by) {
@@ -155,10 +149,7 @@ public abstract class PinterestScraperWorker<T, V> extends WorkerWithTask<T, V> 
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--window-size=1366,768");
-
-        if (!Container.isDebugMode()) {
-            options.setHeadless(true);
-        }
+        options.setHeadless(!Container.isDebugMode());
 
         return new ChromeDriver(options);
     }

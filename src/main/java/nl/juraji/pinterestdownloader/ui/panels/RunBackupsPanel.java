@@ -13,12 +13,17 @@ import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import nl.juraji.pinterestdownloader.util.FormUtils;
 import nl.juraji.pinterestdownloader.util.workers.WrappingWorker;
 import nl.juraji.pinterestdownloader.workers.*;
+import nl.juraji.pinterestdownloader.workers.scraping.FetchBoardsWorker;
+import nl.juraji.pinterestdownloader.workers.scraping.FetchPinsWorker;
+import nl.juraji.pinterestdownloader.workers.scraping.FetchPinsWorkerMode;
+import nl.juraji.pinterestdownloader.workers.scraping.PinterestScraperWorker;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -135,49 +140,11 @@ public class RunBackupsPanel implements TabWindow {
         JMenuItem menuItem;
 
         menuItem = new JMenuItem(I18n.get("ui.runBackups.addButton.fetchBoards"));
-        menuItem.addActionListener(e -> {
-            FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
-
-            final Task task = TasksList.newTask(I18n.get("ui.task.fetchBoards"));
-            FetchBoardsWorker scanner = new FetchBoardsWorker(task, settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.get(Board.class)) {
-                @Override
-                protected void process(List<Board> chunks) {
-                    boardDao.save(chunks);
-                    boardsList.updateBoards(chunks, true);
-                    boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
-                }
-
-                @Override
-                protected void done() {
-                    super.done();
-                    task.complete();
-                    formLock.unlock();
-                    PinterestScraperWorker.destroyDriver();
-                }
-            };
-
-            scanner.execute();
-        });
+        menuItem.addActionListener(this::fetchBoardsAction);
         menu.add(menuItem);
 
         menuItem = new JMenuItem(I18n.get("ui.runBackups.addButton.addLocalFolder"));
-        menuItem.addActionListener(evt -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            fileChooser.setMultiSelectionEnabled(false);
-
-            int result = fileChooser.showOpenDialog(addButton);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                Board localBoard = new Board();
-                localBoard.setLocalFolder(true);
-                localBoard.setName(selectedFile.getName());
-                localBoard.setUrl(selectedFile.getAbsolutePath());
-
-                boardDao.save(localBoard);
-                boardsList.updateBoards(Collections.singletonList(localBoard), true);
-            }
-        });
+        menuItem.addActionListener(this::addLocalFolderAction);
         menu.add(menuItem);
 
         addButton.addActionListener(e -> menu.show(addButton, 0, 0));
@@ -321,5 +288,47 @@ public class RunBackupsPanel implements TabWindow {
                 worker.execute();
             }
         }
+    }
+
+    private void addLocalFolderAction(ActionEvent evt) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+
+        int result = fileChooser.showOpenDialog((Component) evt.getSource());
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            Board localBoard = new Board();
+            localBoard.setLocalFolder(true);
+            localBoard.setName(selectedFile.getName());
+            localBoard.setUrl(selectedFile.getAbsolutePath());
+
+            boardDao.save(localBoard);
+            boardsList.updateBoards(Collections.singletonList(localBoard), true);
+        }
+    }
+
+    private void fetchBoardsAction(ActionEvent evt) {
+        FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
+
+        final Task task = TasksList.newTask(I18n.get("ui.task.fetchBoards"));
+        FetchBoardsWorker scanner = new FetchBoardsWorker(task, settingsDao.getPinterestUsername(), settingsDao.getPinterestPassword(), boardDao.getPinterestBoards()) {
+            @Override
+            protected void process(List<Board> chunks) {
+                boardDao.save(chunks);
+                boardsList.updateBoards(chunks, true);
+                boardCountLabel.setText(I18n.get("ui.runBackups.boardCount", boardsList.getModel().getSize()));
+            }
+
+            @Override
+            protected void done() {
+                super.done();
+                task.complete();
+                formLock.unlock();
+                PinterestScraperWorker.destroyDriver();
+            }
+        };
+
+        scanner.execute();
     }
 }

@@ -2,6 +2,7 @@ package nl.juraji.pinterestdownloader.resources;
 
 import org.jetbrains.annotations.PropertyKey;
 
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 /**
@@ -16,17 +17,17 @@ public final class I18n {
 
     public static String get(@PropertyKey(resourceBundle = BUNDLE_NAME) String key, Object... params) {
         String string = ResourceBundle.getBundle(BUNDLE_NAME).getString(key);
+        final StringBuilder builder = new StringBuilder(string);
 
         if (params != null && params.length > 0) {
-            for (Object param : params) {
-                if(param instanceof String) {
-                    string = string.replaceFirst("\\{}", (String) param);
-                } else {
-                    string = string.replaceFirst("\\{}", String.valueOf(param));
-                }
-            }
+            Arrays.stream(params)
+                    .map(String::valueOf)
+                    .forEach(s -> {
+                        final int i = builder.indexOf("{}");
+                        builder.replace(i, i + 2, s);
+                    });
         }
 
-        return string;
+        return builder.toString();
     }
 }
