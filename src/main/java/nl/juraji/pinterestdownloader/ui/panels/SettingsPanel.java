@@ -4,6 +4,7 @@ import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.PlaceholderTextField;
 import nl.juraji.pinterestdownloader.ui.components.TabWindow;
+import nl.juraji.pinterestdownloader.util.DocumentChangeListener;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Default;
@@ -11,7 +12,6 @@ import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.logging.Logger;
 
 /**
  * Created by Juraji on 24-4-2018.
@@ -26,7 +26,6 @@ public class SettingsPanel implements TabWindow {
     private JButton browseButton;
     private PlaceholderTextField imageOutputLocationField;
 
-    private JButton settingsSaveButton;
     private JPasswordField pinterestPasswordField;
 
     @Inject
@@ -74,15 +73,17 @@ public class SettingsPanel implements TabWindow {
                 File selectedFile = fileChooser.getSelectedFile();
                 settings.setImageStore(selectedFile);
                 imageOutputLocationField.setText(selectedFile.getAbsolutePath());
+                settings.save();
             }
         });
 
-        settingsSaveButton.addActionListener(e -> {
-            String username = pinterestUsernameField.getText();
-            settings.setPinterestUsername(username);
-            String password = new String(pinterestPasswordField.getPassword());
-            settings.setPinterestPassword(password);
+        pinterestUsernameField.getDocument().addDocumentListener((DocumentChangeListener) e -> {
+            settings.setPinterestUsername(pinterestUsernameField.getText());
+            settings.save();
+        });
 
+        pinterestPasswordField.getDocument().addDocumentListener((DocumentChangeListener) e -> {
+            settings.setPinterestPassword(String.valueOf(pinterestPasswordField.getPassword()));
             settings.save();
         });
     }
