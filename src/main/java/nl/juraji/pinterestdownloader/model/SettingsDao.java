@@ -81,6 +81,14 @@ public class SettingsDao extends Dao {
         settings.setImageStore(imageStore);
     }
 
+    public boolean isEnableMultithreading() {
+        return settings.isEnableMultithreading();
+    }
+
+    public void setEnableMultithreading(boolean enableMultithreading) {
+        settings.setEnableMultithreading(enableMultithreading);
+    }
+
     public void save() {
         super.save(settings);
     }

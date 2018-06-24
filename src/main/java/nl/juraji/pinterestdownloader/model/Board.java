@@ -26,6 +26,7 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<Pin> pins;
 
+    @Column
     private boolean localFolder;
 
     public Long getId() {

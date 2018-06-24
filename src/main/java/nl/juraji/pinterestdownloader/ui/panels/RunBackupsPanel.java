@@ -187,10 +187,16 @@ public class RunBackupsPanel implements TabWindow {
                 final FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
 
                 new WrappingWorker() {
-                    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+                    private ExecutorService executorService;
 
                     @Override
                     protected Void doInBackground() throws Exception {
+                        if(settingsDao.isEnableMultithreading()) {
+                            executorService = Executors.newFixedThreadPool(4);
+                        } else {
+                            executorService = Executors.newSingleThreadExecutor();
+                        }
+
                         final ArrayList<Future> backupTaskFutures = new ArrayList<>();
 
                         for (BoardCheckboxListItem selectedItem : selectedItems) {
@@ -250,7 +256,9 @@ public class RunBackupsPanel implements TabWindow {
 
                     @Override
                     protected void done() {
-                        executorService.shutdown();
+                        if (executorService != null) {
+                            executorService.shutdown();
+                        }
                         formLock.unlock();
                         super.done();
                     }

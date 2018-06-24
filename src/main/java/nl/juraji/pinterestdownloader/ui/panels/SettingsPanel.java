@@ -11,6 +11,8 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 
 /**
@@ -27,6 +29,7 @@ public class SettingsPanel implements TabWindow {
     private PlaceholderTextField imageOutputLocationField;
 
     private JPasswordField pinterestPasswordField;
+    private JCheckBox enableMultithreadingCheckBox;
 
     @Inject
     private SettingsDao settings;
@@ -47,6 +50,7 @@ public class SettingsPanel implements TabWindow {
     public void activate() {
         pinterestUsernameField.setText(settings.getPinterestUsername());
         pinterestPasswordField.setText(settings.getPinterestPassword());
+        enableMultithreadingCheckBox.setSelected(settings.isEnableMultithreading());
 
         if (settings.getImageStore() != null) {
             imageOutputLocationField.setText(settings.getImageStore().getAbsolutePath());
@@ -84,6 +88,11 @@ public class SettingsPanel implements TabWindow {
 
         pinterestPasswordField.getDocument().addDocumentListener((DocumentChangeListener) e -> {
             settings.setPinterestPassword(String.valueOf(pinterestPasswordField.getPassword()));
+            settings.save();
+        });
+
+        enableMultithreadingCheckBox.addItemListener(e -> {
+            settings.setEnableMultithreading(enableMultithreadingCheckBox.isSelected());
             settings.save();
         });
     }

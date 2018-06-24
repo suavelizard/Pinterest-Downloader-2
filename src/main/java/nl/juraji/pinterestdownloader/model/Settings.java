@@ -22,6 +22,9 @@ public class Settings {
     @Column(length = 1024)
     private File imageStore;
 
+    @Column
+    private boolean enableMultithreading;
+
     public Long getId() {
         return id;
     }
@@ -52,5 +55,13 @@ public class Settings {
 
     public void setImageStore(File imageStore) {
         this.imageStore = imageStore;
+    }
+
+    public boolean isEnableMultithreading() {
+        return enableMultithreading;
+    }
+
+    public void setEnableMultithreading(boolean enableMultithreading) {
+        this.enableMultithreading = enableMultithreading;
     }
 }

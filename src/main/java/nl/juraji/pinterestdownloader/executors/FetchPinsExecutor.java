@@ -52,7 +52,8 @@ public class FetchPinsExecutor extends PinterestWebExecutor<List<Pin>> {
                 return null;
             }
         } else {
-            pinsToFetchCount = reportedPinCount;
+            // We allow a delta of 5, since Pinterest can be wrong on the total pin count
+            pinsToFetchCount = reportedPinCount - 5;
         }
 
         AtomicInteger previousElCount = new AtomicInteger(0);
@@ -81,7 +82,7 @@ public class FetchPinsExecutor extends PinterestWebExecutor<List<Pin>> {
                 retryCounter.set(1);
                 previousElCount.set(count);
             }
-        } while (currentCount.get() < (pinsToFetchCount - 1));
+        } while (currentCount.get() < pinsToFetchCount);
 
         final List<Pin> resultingPins = new ArrayList<>();
         final List<WebElement> elements = getElements(ScraperData.by("xpath.boardPins.pins.feed"));

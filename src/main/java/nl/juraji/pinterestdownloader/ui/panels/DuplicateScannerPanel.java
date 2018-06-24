@@ -3,6 +3,7 @@ package nl.juraji.pinterestdownloader.ui.panels;
 import nl.juraji.pinterestdownloader.executors.DuplicateScanExecutor;
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.BoardDao;
+import nl.juraji.pinterestdownloader.model.SettingsDao;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.components.*;
 import nl.juraji.pinterestdownloader.ui.components.renderers.DuplicatePinSet;
@@ -34,6 +35,9 @@ public class DuplicateScannerPanel implements TabWindow {
     private DuplicatePinSetList duplicateSetList;
     private PinsList duplicateSetContentsList;
     private JCheckBox scanPerBoardCheckBox;
+
+    @Inject
+    private SettingsDao settings;
 
     @Inject
     private BoardDao boardDao;
@@ -85,10 +89,16 @@ public class DuplicateScannerPanel implements TabWindow {
                 duplicateSetContentsList.clear();
 
                 new WrappingWorker() {
-                    private final ExecutorService executorService = Executors.newFixedThreadPool(8);
+                    private ExecutorService executorService;
 
                     @Override
                     protected Void doInBackground() throws Exception {
+                        if(settings.isEnableMultithreading()) {
+                            executorService = Executors.newFixedThreadPool(4);
+                        } else {
+                            executorService = Executors.newSingleThreadExecutor();
+                        }
+
                         final List<Board> boards = boardDao.get(Board.class).stream()
                                 .filter(board -> board.getPins().size() > 0)
                                 .map(boardDao::initPinImageHashes)
@@ -97,48 +107,46 @@ public class DuplicateScannerPanel implements TabWindow {
                         final ArrayList<Future> backupTaskFutures = new ArrayList<>();
 
                         if (scanPerBoardCheckBox.isSelected()) {
-                            for (Board board : boards) {
-                                final Future future = executorService.submit(() -> {
-                                    final Task scantask = TasksList.newTask(I18n.get("ui.task.duplicateScan", board.getName()));
-
-                                    performScan(board, scantask);
-                                });
-
-                                backupTaskFutures.add(future);
-                            }
+                            boards.stream()
+                                    .map(this::performScanRunnable)
+                                    .map(executorService::submit)
+                                    .forEach(backupTaskFutures::add);
                         } else {
                             final Board allPinsBoard = new Board();
                             allPinsBoard.setName(I18n.get("worker.duplicateScanWorker.allBoards"));
-                            final Future future = executorService.submit(() -> {
-                                final Task scantask = TasksList.newTask(I18n.get("ui.task.duplicateScan.allBoards"));
+                            boards.forEach(board -> allPinsBoard.getPins().addAll(board.getPins()));
 
-                                performScan(allPinsBoard, scantask);
-                            });
-
+                            final Future future = executorService.submit(this.performScanRunnable(allPinsBoard));
                             backupTaskFutures.add(future);
                         }
 
                         for (Future backupTaskFuture : backupTaskFutures) {
+                            // Join all future threads in order to block the wrapping worker thread
                             backupTaskFuture.get();
                         }
 
                         return null;
                     }
 
-                    private void performScan(Board board, Task scantask) {
-                        try {
-                            final DuplicateScanExecutor executor = new DuplicateScanExecutor(scantask, board);
-                            duplicateSetList.addSets(executor.call());
-                        } catch (Exception e) {
-                            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Failed scanning duplicates", e);
-                        } finally {
-                            scantask.complete();
-                        }
+                    private Runnable performScanRunnable(Board board) {
+                        return () -> {
+                            final Task scantask = TasksList.newTask(I18n.get("ui.task.duplicateScan", board.getName()));
+                            try {
+                                final DuplicateScanExecutor executor = new DuplicateScanExecutor(scantask, board);
+                                duplicateSetList.addSets(executor.call());
+                            } catch (Exception e) {
+                                Logger.getLogger(getClass().getName()).log(Level.WARNING, "Failed scanning duplicates", e);
+                            } finally {
+                                scantask.complete();
+                            }
+                        };
                     }
 
                     @Override
                     protected void done() {
-                        executorService.shutdown();
+                        if (executorService != null) {
+                            executorService.shutdown();
+                        }
                         formLock.unlock();
                     }
                 }.execute();
