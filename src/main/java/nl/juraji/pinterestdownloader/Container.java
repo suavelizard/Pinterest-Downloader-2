@@ -35,10 +35,6 @@ public final class Container {
         CONTAINER.set(new Container(args));
     }
 
-    public static Weld getWeld() {
-        return CONTAINER.get().weld;
-    }
-
     @SuppressWarnings("unused")
     public static void shutdown() {
         CONTAINER.get().weld.shutdown();

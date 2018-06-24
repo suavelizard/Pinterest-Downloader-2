@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.workers.scraping;
+package nl.juraji.pinterestdownloader.executors;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.resources.I18n;
@@ -11,25 +11,23 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
- * Created by Juraji on 25-4-2018.
+ * Created by Juraji on 23-6-2018.
  * Pinterest Downloader
  */
-public class FetchBoardsWorker extends PinterestScraperWorker<Void, Board> {
+public class FetchBoardsExecutor extends PinterestWebExecutor<List<Board>> {
 
     private final List<Board> currentBoards;
 
-    public FetchBoardsWorker(Task task, String username, String password, List<Board> currentBoards) {
+    public FetchBoardsExecutor(Task task, String username, String password, List<Board> currentBoards) {
         super(task, username, password);
         this.currentBoards = currentBoards;
     }
 
     @Override
-    protected Void doInBackground() throws Exception {
-        getTask().setTask(I18n.get("worker.common.loggingIn"));
-        login();
-
+    protected List<Board> execute() throws Exception {
         getTask().setTask(I18n.get("worker.fetchBoardsWorker.gettingBoards"));
         goToProfile();
 
@@ -46,16 +44,14 @@ public class FetchBoardsWorker extends PinterestScraperWorker<Void, Board> {
         getTask().setTask(I18n.get("worker.fetchBoardsWorker.processingBoards"));
         getTask().setProgressMax(boardWrappers.size());
 
-        boardWrappers.stream()
+        return boardWrappers.stream()
                 .peek(board -> getTask().incrementProgress())
                 .map(this::mapElementToBoard)
                 .filter(Objects::nonNull)
                 .filter(board -> currentBoards.stream()
                         .noneMatch(targetBoard -> targetBoard.getUrl().equals(board.getUrl())))
                 .sorted(Comparator.comparing(Board::getName))
-                .forEach(this::publish);
-
-        return null;
+                .collect(Collectors.toList());
     }
 
     private Board mapElementToBoard(WebElement webElement) {
@@ -74,7 +70,7 @@ public class FetchBoardsWorker extends PinterestScraperWorker<Void, Board> {
 
             return board;
         } catch (NoSuchElementException ignored) {
-            // If mapping fails it's most probably not a valid board
+            // If mapping fails it's most probably not an actual board
         }
 
         return null;

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * Pinterest Downloader
  */
 public class BoardsCheckboxList extends JList<BoardCheckboxListItem> {
-    private AtomicReference<Consumer<Board>> onBoardUpdate = new AtomicReference<>();
+    private final AtomicReference<Consumer<Board>> onBoardUpdate = new AtomicReference<>();
 
     public BoardsCheckboxList() {
         setCellRenderer(new BoardCheckboxListItemRenderer());

@@ -13,16 +13,6 @@ public final class FormUtils {
     private FormUtils() {
     }
 
-    public static void moveToCenterOf(Component component, Component target) {
-        Point targetLocation = target.getLocation();
-        Dimension targetSize = target.getSize();
-        Dimension componentSize = component.getSize();
-        component.setLocation(
-                targetLocation.x + (targetSize.width / 2 - componentSize.width / 2),
-                targetLocation.y + (targetSize.height / 2 - componentSize.height / 2)
-        );
-    }
-
     public static FormLock lockForm(Container form) {
         return new FormLock(form);
     }

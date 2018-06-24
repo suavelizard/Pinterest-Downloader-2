@@ -1,11 +1,10 @@
-package nl.juraji.pinterestdownloader.workers;
+package nl.juraji.pinterestdownloader.executors;
 
 import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.dialogs.Task;
 import nl.juraji.pinterestdownloader.util.FileUtils;
-import nl.juraji.pinterestdownloader.util.workers.WorkerWithTask;
 
 import java.io.File;
 import java.util.List;
@@ -13,20 +12,20 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Created by Juraji on 12-6-2018.
+ * Created by Juraji on 23-6-2018.
  * Pinterest Downloader
  */
-public class LocalFolderScanWorker extends WorkerWithTask<List<Pin>, Void> {
+public class LocalFolderScanExecutor extends TaskExecutor<List<Pin>> {
 
     private final Board board;
 
-    public LocalFolderScanWorker(Task task, Board board) {
+    public LocalFolderScanExecutor(Task task, Board board) {
         super(task);
         this.board = board;
     }
 
     @Override
-    protected List<Pin> doInBackground() {
+    public List<Pin> execute() {
         getTask().setTask(I18n.get("worker.localFolderScanWorker.taskName"));
 
         final File boardRoot = new File(board.getUrl());

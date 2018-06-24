@@ -1,4 +1,4 @@
-package nl.juraji.pinterestdownloader.util.workers;
+package nl.juraji.pinterestdownloader.util;
 
 import javax.swing.*;
 

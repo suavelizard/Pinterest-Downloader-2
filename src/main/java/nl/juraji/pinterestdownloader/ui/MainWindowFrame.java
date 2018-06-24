@@ -1,5 +1,6 @@
 package nl.juraji.pinterestdownloader.ui;
 
+import nl.juraji.pinterestdownloader.executors.PinValidityCheckExecutor;
 import nl.juraji.pinterestdownloader.model.BoardDao;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
@@ -12,9 +13,11 @@ import nl.juraji.pinterestdownloader.ui.panels.RunBackupsPanel;
 import nl.juraji.pinterestdownloader.ui.panels.SettingsPanel;
 import nl.juraji.pinterestdownloader.util.ArrayListModel;
 import nl.juraji.pinterestdownloader.util.FormUtils;
-import nl.juraji.pinterestdownloader.workers.DbPinValidityCheckWorker;
+import nl.juraji.pinterestdownloader.util.WrappingWorker;
+import nl.juraji.pinterestdownloader.util.webdrivers.WebDriverPool;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
@@ -100,6 +103,12 @@ public class MainWindowFrame extends JFrame {
         setVisible(true);
     }
 
+    @PreDestroy
+    private void preDestroy() {
+        // Shutdown the webdriver pool utility
+        WebDriverPool.shutdown();
+    }
+
     private void setupTabContainer() {
         final AtomicInteger prevActiveTab = new AtomicInteger(-1);
         final List<TabWindow> tabWindows = new ArrayList<>();
@@ -144,20 +153,21 @@ public class MainWindowFrame extends JFrame {
 
         FormUtils.FormLock formLock = FormUtils.lockForm(contentPane);
         final Task task = TasksList.newTask(I18n.get("ui.task.checkIntegrity"));
-        final DbPinValidityCheckWorker worker = new DbPinValidityCheckWorker(task, dao.get(Pin.class)) {
+
+        new WrappingWorker() {
             @Override
-            protected void process(List<Pin> chunks) {
-                dao.save(chunks);
+            protected Void doInBackground() throws Exception {
+                final PinValidityCheckExecutor executor = new PinValidityCheckExecutor(task, dao.get(Pin.class));
+                final List<Pin> pins = executor.call();
+                dao.save(pins);
+                return null;
             }
 
             @Override
             protected void done() {
-                super.done();
                 task.complete();
                 formLock.unlock();
             }
-        };
-
-        worker.execute();
+        }.execute();
     }
 }

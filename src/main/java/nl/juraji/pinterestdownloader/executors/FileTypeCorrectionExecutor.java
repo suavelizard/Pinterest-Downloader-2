@@ -1,43 +1,51 @@
-package nl.juraji.pinterestdownloader.workers;
+package nl.juraji.pinterestdownloader.executors;
 
 import com.google.common.base.Strings;
 import net.sf.jmimemagic.*;
+import nl.juraji.pinterestdownloader.model.Board;
 import nl.juraji.pinterestdownloader.model.Pin;
 import nl.juraji.pinterestdownloader.resources.I18n;
 import nl.juraji.pinterestdownloader.ui.dialogs.Task;
-import nl.juraji.pinterestdownloader.util.workers.WorkerWithTask;
 
 import java.io.File;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.util.List;
 
 /**
- * Created by Juraji on 30-4-2018.
+ * Created by Juraji on 23-6-2018.
  * Pinterest Downloader
  */
-public class PinImageTypeCheckWorker extends WorkerWithTask<Void, Void> {
+public class FileTypeCorrectionExecutor extends TaskExecutor<Void> {
 
-    private final List<Pin> pins;
+    private final Board board;
 
-    public PinImageTypeCheckWorker(Task task, List<Pin> pins) {
+    public FileTypeCorrectionExecutor(Task task, Board board) {
         super(task);
-        this.pins = pins;
+        this.board = board;
     }
 
     @Override
-    protected Void doInBackground() throws Exception {
+    protected Void execute() throws Exception {
+        final List<Pin> pins = board.getPins();
         getTask().setTask(I18n.get("worker.pinImageTypeCheckWorker.checkingFiles"));
         getTask().setProgressMax(pins.size());
 
         for (Pin pin : pins) {
             getTask().incrementProgress();
-            File fileOnDisk = pin.getFileOnDisk();
+            final File fileOnDisk = pin.getFileOnDisk();
 
             if (fileOnDisk != null) {
-                File magicMatchFile = getMagicMatchedFile(fileOnDisk);
+                final File magicMatchFile = getMagicMatchedFile(fileOnDisk);
 
                 if (!fileOnDisk.equals(magicMatchFile)) {
-                    Files.move(fileOnDisk.toPath(), magicMatchFile.toPath());
+                    try {
+                        Files.move(fileOnDisk.toPath(), magicMatchFile.toPath());
+                    } catch (FileAlreadyExistsException e) {
+                        // The target file already exists, so delete the newly downloaded one and proceed
+                        Files.deleteIfExists(fileOnDisk.toPath());
+                    }
+
                     pin.setFileOnDisk(magicMatchFile);
                 }
             }
@@ -48,11 +56,11 @@ public class PinImageTypeCheckWorker extends WorkerWithTask<Void, Void> {
 
     private File getMagicMatchedFile(File file) {
         try {
-            String orgFilePath = file.getAbsolutePath();
-            String orgExtension = orgFilePath.substring(orgFilePath.lastIndexOf('.') + 1);
-            MagicMatch magicMatch = Magic.getMagicMatch(file, false, true);
+            final String orgFilePath = file.getAbsolutePath();
+            final String orgExtension = orgFilePath.substring(orgFilePath.lastIndexOf('.') + 1);
+            final MagicMatch magicMatch = Magic.getMagicMatch(file, false, true);
 
-            String magicMatchExtension = magicMatch.getExtension();
+            final String magicMatchExtension = magicMatch.getExtension();
             if (!Strings.isNullOrEmpty(magicMatchExtension)) {
                 if (!magicMatchExtension.equals(orgExtension)) {
                     file = new File(orgFilePath.replace(orgExtension, magicMatchExtension));
