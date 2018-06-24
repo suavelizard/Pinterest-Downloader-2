@@ -210,6 +210,9 @@ public class RunBackupsPanel implements TabWindow {
                                     }
 
                                     if (fetchedPins != null) {
+                                        if (!BackupMode.INCREMENTAL_UPDATE.equals(mode)) {
+                                            board.getPins().clear();
+                                        }
                                         board.getPins().addAll(fetchedPins);
                                     }
 

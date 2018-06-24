@@ -39,7 +39,7 @@ public class PinDownloadExecutor extends TaskExecutor<Void> {
             final List<Pin> pins = board.getPins();
 
             List<Pin> pinsToDownload = pins.stream()
-                    .filter(pin -> pin.getOriginalUrl() != null && pin.getFileOnDisk() == null)
+                    .filter(pin -> pin.getSourceUrls() != null && pin.getFileOnDisk() == null)
                     .collect(Collectors.toList());
 
             getTask().setTask(I18n.get("worker.pinsDownloadWorker.downloadingPins", pinsToDownload.size()));
@@ -55,30 +55,35 @@ public class PinDownloadExecutor extends TaskExecutor<Void> {
     }
 
     private void downloadPin(Pin pin) {
-        String reportedUrl = pin.getOriginalUrl();
-        String fileExtension = reportedUrl.substring(reportedUrl.lastIndexOf('.'));
-        String pinFileName;
+        final List<String> imgUrls = pin.getSourceUrls();
+        boolean failed = true;
 
-        if (Strings.isNullOrEmpty(pin.getDescription())) {
-            pinFileName = pin.getPinId() + fileExtension;
-        } else {
-            pinFileName = pin.getPinId() + "_" + getFileSystemSafeName(pin.getDescription()) + fileExtension;
+        for (String imgUrl : imgUrls) {
+            final String fileName = createTargetFileName(pin, imgUrl);
+
+            try {
+                final File download = doDownload(imgUrl, fileName);
+                pin.setFileOnDisk(download);
+                failed = false;
+                break;
+            } catch (IOException ignored) {
+                logWarning("Failed downloading pin from " + imgUrl + ", trying next uri...");
+            }
         }
 
-        try {
-            final File download = doDownload(reportedUrl, pinFileName);
-            pin.setFileOnDisk(download);
-        } catch (IOException e) {
-            // Originals uri failed, try 736x uri
-            logWarning("Failed downloading pin from " + reportedUrl + ", trying 736x uri...");
-            String x736Uri = reportedUrl.replace("/originals/", "/736x/");
-            try {
-                final File download = doDownload(reportedUrl, pinFileName);
-                pin.setFileOnDisk(download);
-                pin.setOriginalUrl(x736Uri);
-            } catch (IOException e1) {
-                logWarning("Failed downloading pin from " + x736Uri + ", giving up!");
-            }
+        if (failed) {
+            logWarning("Failed downloading pin " + pin.getPinId() + ", giving up!");
+        }
+    }
+
+    private String createTargetFileName(Pin pin, String imgUrl) {
+        String ext = imgUrl.substring(imgUrl.lastIndexOf("."));
+        String fileName;
+
+        if (Strings.isNullOrEmpty(pin.getDescription())) {
+            return pin.getPinId() + ext;
+        } else {
+            return pin.getPinId() + " - " + getFileSystemSafeName(pin.getDescription()) + ext;
         }
     }
 

@@ -9,6 +9,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,12 +36,12 @@ public class FetchPinsExecutor extends PinterestWebExecutor<List<Pin>> {
         navigate(board.getUrl());
         super.executeScript("/js/hide-pinwrappers.js");
 
-        List<Pin> downloadedPins = board.getPins().stream()
+        final List<Pin> downloadedPins = board.getPins().stream()
                 .filter(pin -> pin.getFileOnDisk() != null)
                 .collect(Collectors.toList());
 
-        int reportedPinCount = getReportedPinCount();
-        int pinsToFetchCount;
+        final int reportedPinCount = getReportedPinCount();
+        final int pinsToFetchCount;
 
         if (BackupMode.INCREMENTAL_UPDATE.equals(backupMode)) {
             int downloadedPinsCount = downloadedPins.size();
@@ -80,7 +81,7 @@ public class FetchPinsExecutor extends PinterestWebExecutor<List<Pin>> {
                 retryCounter.set(1);
                 previousElCount.set(count);
             }
-        } while (currentCount.get() < pinsToFetchCount);
+        } while (currentCount.get() < (pinsToFetchCount - 1));
 
         final List<Pin> resultingPins = new ArrayList<>();
         final List<WebElement> elements = getElements(ScraperData.by("xpath.boardPins.pins.feed"));
@@ -114,32 +115,38 @@ public class FetchPinsExecutor extends PinterestWebExecutor<List<Pin>> {
 
     private Pin mapElementToPin(WebElement webElement) {
         try {
-            String pinUrl = webElement
+            final Pin pin = new Pin();
+            pin.setBoard(board);
+
+            final String pinUrl = webElement
                     .findElement(ScraperData.by("xpath.boardPins.pins.feed.pinLink"))
                     .getAttribute("href");
 
-            String[] pinImgSrcSet = webElement
+            pin.setPinId(pinUrl.replaceAll("^.*/pin/(.+)/$", "$1"));
+            pin.setUrl(pinUrl);
+
+            final String[] pinImgSrcSet = webElement
                     .findElement(ScraperData.by("xpath.boardPins.pins.feed.pinImgLink"))
                     .getAttribute("srcset")
                     .split(", ");
-            String src = pinImgSrcSet[pinImgSrcSet.length - 1];
-            src = src.substring(0, src.length() - 3);
+            final List<String> imgUrls = Arrays.stream(pinImgSrcSet)
+                    .sorted((a, b) -> {
+                        final String ax = a.substring(a.length() - 3, a.length() - 1);
+                        final String bx = b.substring(b.length() - 3, b.length() - 1);
+                        return bx.compareTo(ax);
+                    })
+                    .map(s -> s.substring(0, s.length() - 3))
+                    .collect(Collectors.toList());
 
-            String description;
+            pin.setSourceUrls(imgUrls);
+
             try {
-                description = webElement
+                final String description = webElement
                         .findElement(ScraperData.by("xpath.boardPins.pins.feed.pinDescription"))
                         .getText();
-            } catch (NoSuchElementException e) {
-                description = "";
+                pin.setDescription(description.trim());
+            } catch (NoSuchElementException ignored) {
             }
-
-            Pin pin = new Pin();
-            pin.setPinId(pinUrl.replaceAll("^.*/pin/(.+)/$", "$1"));
-            pin.setDescription(description.trim());
-            pin.setUrl(pinUrl);
-            pin.setOriginalUrl(src);
-            pin.setBoard(board);
 
             return pin;
         } catch (NoSuchElementException ignored) {

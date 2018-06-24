@@ -2,6 +2,7 @@ package nl.juraji.pinterestdownloader.model;
 
 import javax.persistence.*;
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -25,9 +26,6 @@ public class Pin {
     private String url;
 
     @Column(length = 1024)
-    private String originalUrl;
-
-    @Column(length = 1024)
     private File fileOnDisk;
 
     // Should be loaded via BoardDao::initPinImageHashes or if no-session issue is fixed
@@ -36,6 +34,9 @@ public class Pin {
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private Board board;
+
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    private List<String> sourceUrls;
 
     public Long getId() {
         return id;
@@ -69,14 +70,6 @@ public class Pin {
         this.url = url;
     }
 
-    public String getOriginalUrl() {
-        return originalUrl;
-    }
-
-    public void setOriginalUrl(String originalUrl) {
-        this.originalUrl = originalUrl;
-    }
-
     public File getFileOnDisk() {
         return fileOnDisk;
     }
@@ -99,6 +92,14 @@ public class Pin {
 
     public void setBoard(Board board) {
         this.board = board;
+    }
+
+    public void setSourceUrls(List<String> sourceUrls) {
+        this.sourceUrls = sourceUrls;
+    }
+
+    public List<String> getSourceUrls() {
+        return sourceUrls;
     }
 
     @Override

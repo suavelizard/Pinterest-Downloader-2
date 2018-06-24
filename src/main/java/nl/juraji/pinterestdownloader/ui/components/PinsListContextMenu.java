@@ -43,7 +43,7 @@ public class PinsListContextMenu extends JPopupMenu {
     @SuppressWarnings("unused")
     private void browseAction(ActionEvent event) {
         final Pin pin = owner.getSelectedValue();
-        if (pin != null && pin.getOriginalUrl() != null && Desktop.isDesktopSupported()) {
+        if (pin != null && pin.getUrl() != null && Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(new URI(pin.getUrl()));
             } catch (IOException | URISyntaxException e) {
