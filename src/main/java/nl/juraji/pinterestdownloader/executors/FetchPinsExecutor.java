@@ -105,7 +105,7 @@ public class FetchPinsExecutor extends PinterestWebExecutor<List<Pin>> {
         WebElement pinCountElement = getElement(ScraperData.by("xpath.boardPins.pinCount"));
         if (pinCountElement != null) {
             String count = pinCountElement.getText()
-                    .replace(" pins", "")
+                    .replace(" Pins", "")
                     .replace(".", "");
 
             return Integer.parseInt(count);
